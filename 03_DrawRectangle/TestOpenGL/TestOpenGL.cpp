@@ -101,7 +101,7 @@ int main()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	//GLSL顶点着色器的源代码
-	char* vertexShaderSource = "#version 330 core\n \
+	const char* vertexShaderSource = "#version 330 core\n \
 	layout(location = 0) in vec3 aPos;\n \
     \n \
 	void main()\n \
@@ -128,7 +128,7 @@ int main()
 	}
 
 	//GLSL片段着色器的源代码
-	char* fragmentShaderSource = "#version 330 core\n \
+	const char* fragmentShaderSource = "#version 330 core\n \
 	out vec4 FragColor;\n \
 	\n\
 	void main()\n \

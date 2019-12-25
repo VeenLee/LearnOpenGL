@@ -1,5 +1,5 @@
 //
-// 让顶点着色器为片段着色器决定颜色
+// 使用 顶点数组对象(Vertex Array Object，VAO) 和 顶点缓冲对象(Vertex Buffer Object，VBO) 绘制三角形
 //
 
 #include "pch.h"
@@ -23,7 +23,7 @@ void processInput(GLFWwindow *window)
 int main()
 {
 	glfwInit();
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	//glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -37,13 +37,13 @@ int main()
 	}
 	glfwMakeContextCurrent(window);
 
-	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
 	glViewport(0, 0, 800, 600);
-
+  
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
 	float vertices[] = {
@@ -55,9 +55,9 @@ int main()
 		//0.9f, -0.5f, 0.0f,  // right
 		//0.45f, 0.5f, 0.0f   // top 
 	};
-
+  
 	/*
-		顶点数组对象(Vertex Array Object, VAO)可以像顶点缓冲对象那样被绑定，任何随后的顶点属性调用都会储存在这个VAO中。这样的好处就是，当配置顶点属性指针时，你只需要将那些调用执行一次，
+	顶点数组对象(Vertex Array Object, VAO)可以像顶点缓冲对象那样被绑定，任何随后的顶点属性调用都会储存在这个VAO中。这样的好处就是，当配置顶点属性指针时，你只需要将那些调用执行一次，
 	之后再绘制物体的时候只需要绑定相应的VAO就行了。这使在不同顶点数据和属性配置之间切换变得非常简单，只需要绑定不同的VAO就行了。刚刚设置的所有状态都将存储在VAO中。
 	OpenGL的核心模式要求我们使用VAO，所以它知道该如何处理我们的顶点输入。如果我们绑定VAO失败，OpenGL会拒绝绘制任何东西。
 	*/
@@ -68,7 +68,7 @@ int main()
 	//生成一个VBO对象
 	unsigned int VBO;
 	glGenBuffers(1, &VBO);
-
+  
 	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
 	glBindVertexArray(VAO);
 
@@ -91,17 +91,14 @@ int main()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	//GLSL顶点着色器的源代码
-	char* vertexShaderSource = "#version 330 core\n \
-	layout(location = 0) in vec3 aPos; // 位置变量的属性位置值为0\n \
-	\n \
-	out vec4 vertexColor; // 为片段着色器指定一个颜色输出\n \
-	\n \
+	const char* vertexShaderSource = "#version 330 core\n \
+	layout(location = 0) in vec3 aPos;\n \
+    \n \
 	void main()\n \
 	{\n \
-		gl_Position = vec4(aPos, 1.0); // 注意我们如何把一个vec3作为vec4的构造器的参数\n \
-		vertexColor = vec4(0.5, 0.0, 0.0, 1.0); // 把输出变量设置为暗红色\n \
+		gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n \
 	}\n";
-
+  
 	//创建一个顶点着色器对象
 	unsigned int vertexShader;
 	vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -119,16 +116,14 @@ int main()
 		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
 	}
-
+  
 	//GLSL片段着色器的源代码
-	char* fragmentShaderSource = "#version 330 core\n \
+	const char* fragmentShaderSource = "#version 330 core\n \
 	out vec4 FragColor;\n \
-	\n \
-	in vec4 vertexColor; // 从顶点着色器传来的输入变量（名称相同、类型相同）\n \
-	\n \
+	\n\
 	void main()\n \
 	{\n \
-		FragColor = vertexColor;\n \
+		FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n \
 	}\n";
 
 	//编译片段着色器
@@ -188,9 +183,9 @@ int main()
 	第三个参数指定数据的类型，这里是GL_FLOAT(GLSL中vec*都是由浮点数值组成的)。
 	第四个参数定义我们是否希望数据被标准化(Normalize)。如果我们设置为GL_TRUE，所有数据都会被映射到0（对于有符号型signed数据是-1）到1之间。我们把它设置为GL_FALSE。
 	第五个参数叫做步长(Stride)，它告诉我们在连续的顶点属性组之间的间隔。由于下个组位置数据在3个float之后，我们把步长设置为3 * sizeof(float)。
-要注意的是由于我们知道这个数组是紧密排列的（在两个顶点属性之间没有空隙）我们也可以设置为0来让OpenGL决定具体步长是多少（只有当数值是紧密排列时才可用）。
+		要注意的是由于我们知道这个数组是紧密排列的（在两个顶点属性之间没有空隙）我们也可以设置为0来让OpenGL决定具体步长是多少（只有当数值是紧密排列时才可用）。
 		一旦我们有更多的顶点属性，我们就必须更小心地定义每个顶点属性之间的间隔，我们在后面会看到更多的例子（译注:这个参数的意思简单说就是从这个属性第二次出现的地方到整个数组0位置之间有多少字节）。
-	第六个参数的类型是void*，所以需要我们进行这个奇怪的强制类型转换。它表示位置数据在缓冲中起始位置的偏移量(Offset)。由于位置数据在数组的开头，所以这里是0。我们会在后面详细解释这个参数。
+第六个参数的类型是void*，所以需要我们进行这个奇怪的强制类型转换。它表示位置数据在缓冲中起始位置的偏移量(Offset)。由于位置数据在数组的开头，所以这里是0。我们会在后面详细解释这个参数。
 	*/
 	//设置顶点属性指针
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
@@ -211,7 +206,7 @@ int main()
 		glBindVertexArray(VAO); // seeing as we only have a single VAO there's no need to bind it every time, but we'll do so to keep things a bit more organized
 
 		//要想绘制我们想要的物体，OpenGL给我们提供了glDrawArrays函数，它使用当前激活的着色器，之前定义的顶点属性配置，和VBO的顶点数据（通过VAO间接绑定）来绘制图元。
-				//第一个参数是我们打算绘制的OpenGL图元的类型。第二个参数指定了顶点数组的起始索引，我们这里填0。最后一个参数指定我们打算绘制多少个顶点，这里是3（我们只从我们的数据中渲染一个三角形，它只有3个顶点长）。
+		//第一个参数是我们打算绘制的OpenGL图元的类型。第二个参数指定了顶点数组的起始索引，我们这里填0。最后一个参数指定我们打算绘制多少个顶点，这里是3（我们只从我们的数据中渲染一个三角形，它只有3个顶点长）。
 		glDrawArrays(GL_TRIANGLES, 0, 3); //若想绘制两个三角形，第三个参数可以改为6
 		// glBindVertexArray(0); // no need to unbind it every time 
 
