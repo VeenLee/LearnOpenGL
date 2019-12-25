@@ -3,3 +3,5 @@ GLFW是一个专门针对OpenGL的C语言库，它提供了一些渲染物体所
 于OpenGL驱动版本众多，它大多数函数的位置都无法在编译时确定下来，需要在运行时查询。所以任务就落在了开发者身上，开发者需要在运行时获取函数地址并将其保存在一个函数指针中供以后使用。取得地址的方法因平台而异，所以非常繁琐。幸运的是，有些库能简化此过程，其中GLAD是目前最新，也是最流行的库。
 
 https://learnopengl-cn.github.io
+
+https://github.com/nothings/stb/blob/master/stb_image.h
