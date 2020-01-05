@@ -9,6 +9,11 @@ https://learnopengl-cn.github.io
 https://github.com/nothings/stb/blob/master/stb_image.h
 
 https://github.com/openglredbook/examples
+https://github.com/danginsburg/opengles3-book
+
+https://github.com/mmp/pbrt-v2
+https://github.com/mmp/pbrt-v3
+
 http://www.opengl-tutorial.org/
 https://learnopengl.com/
 https://www.jianshu.com/p/6bda18e953f6
@@ -16,3 +21,12 @@ http://ogldev.atspace.co.uk/index.html
 https://blog.csdn.net/cordova/category_9266966.html
 http://www.mbsoftworks.sk/tutorials/opengl4/
 http://www.mbsoftworks.sk/tutorials/opengl3/
+https://www.jianshu.com/p/b5f8627d9cbc
+
+opengles3-book官方源码有问题，需要做如下修改：
+edit opengles3-book-master\Common\Source\Win32\esUtil_win32.c
+ESContext *esContext = ( ESContext * ) ( LONG_PTR ) GetWindowLongPtr ( hWnd, GWL_USERDATA );
+if (esContext == NULL)
+{
+    return DefWindowProc(hWnd, uMsg, wParam, lParam);
+}
