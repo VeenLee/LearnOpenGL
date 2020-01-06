@@ -6,6 +6,8 @@ GLFW是一个专门针对OpenGL的C语言库，它提供了一些渲染物体所
 
 https://learnopengl-cn.github.io
 
+https://github.com/g-truc/glm 专门为OpenGL量身定做的数学库
+
 https://github.com/nothings/stb/blob/master/stb_image.h
 
 https://github.com/openglredbook/examples
