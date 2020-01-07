@@ -1,1 +1,15 @@
 */.vs/*
+.vs/*
+*.VC.opendb
+*.VC.db
+*.exe
+*.pdb
+*.ilk
+*.tlog
+*.log
+*.obj
+*.idb
+*.pdb
+*.lastbuildstate
+*.iobj
+*.ipdb
