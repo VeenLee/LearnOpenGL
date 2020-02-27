@@ -56,8 +56,8 @@ int main()
 		//交换缓冲，绘制
 		glfwSwapBuffers(window);
 		//or:
-		//glFlush();
 		//glDrawBuffer(GL_FRONT);
+		//glFlush();
 
 		//检查有没有触发什么事件
 		glfwPollEvents();
