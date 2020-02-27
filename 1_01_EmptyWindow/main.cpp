@@ -53,8 +53,13 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// 检查并调用事件，交换缓冲
+		//交换缓冲，绘制
 		glfwSwapBuffers(window);
+		//or:
+		//glFlush();
+		//glDrawBuffer(GL_FRONT);
+
+		//检查有没有触发什么事件
 		glfwPollEvents();
 	}
 
