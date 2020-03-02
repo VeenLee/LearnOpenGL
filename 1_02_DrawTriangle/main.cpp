@@ -69,6 +69,8 @@ int main()
 	glGenBuffers(1, &VBO);
   
 	// bind the Vertex Array Object first, then bind and set vertex buffer(s), and then configure vertex attributes(s).
+	//OpenGL的核心模式要求我们使用VAO，所以它知道该如何处理我们的顶点输入。如果我们绑定VAO失败，OpenGL会拒绝绘制任何东西。
+	//顶点数组对象(Vertex Array Object, VAO)可以像顶点缓冲对象那样被绑定，任何随后的顶点属性调用都会储存在这个VAO中
 	glBindVertexArray(VAO);
 
 	//把新创建的缓冲绑定到GL_ARRAY_BUFFER目标上
@@ -90,8 +92,9 @@ int main()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	//GLSL顶点着色器的源代码
+	//gl_Position：输出属性-变换后的顶点的位置，用于后面的固定的裁剪等操作。所有的顶点着色器都必须写这个值。
 	const char* vertexShaderSource = "#version 330 core\n \
-	layout(location = 0) in vec3 aPos;\n \
+	layout(location = 10) in vec3 aPos;\n \
     \n \
 	void main()\n \
 	{\n \
@@ -117,6 +120,8 @@ int main()
 	}
   
 	//GLSL片段着色器的源代码
+	//片段着色器只需要一个输出变量，这个变量是一个4分量向量，它表示的是最终的输出颜色
+	//可以定义out vec4或者使用预定义的gl_FragColor
 	const char* fragmentShaderSource = "#version 330 core\n \
 	out vec4 FragColor;\n \
 	\n\
@@ -187,10 +192,10 @@ int main()
 第六个参数的类型是void*，所以需要我们进行这个奇怪的强制类型转换。它表示位置数据在缓冲中起始位置的偏移量(Offset)。由于位置数据在数组的开头，所以这里是0。我们会在后面详细解释这个参数。
 	*/
 	//设置顶点属性指针
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glVertexAttribPointer(10, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
 	//启用顶点属性，顶点属性默认是禁用的
-	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(10);
 
 	while (!glfwWindowShouldClose(window))
 	{
