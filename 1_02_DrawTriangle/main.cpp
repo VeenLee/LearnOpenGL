@@ -49,10 +49,14 @@ int main()
 		-0.5f, -0.5f, 0.0f,
 		0.5f, -0.5f, 0.0f,
 		0.0f,  0.5f, 0.0f,
-		//// second triangle
-		//0.0f, -0.5f, 0.0f,  // left
-		//0.9f, -0.5f, 0.0f,  // right
-		//0.45f, 0.5f, 0.0f   // top 
+
+		//-0.9f, -0.5f, 0.0f,  // left 
+		//-0.0f, -0.5f, 0.0f,  // right
+		//-0.45f, 0.5f, 0.0f,  // top 
+		////// second triangle
+		////0.0f, -0.5f, 0.0f,  // left
+		////0.9f, -0.5f, 0.0f,  // right
+		////0.45f, 0.5f, 0.0f   // top 
 	};
   
 	/*
@@ -211,7 +215,7 @@ int main()
 
 		//要想绘制我们想要的物体，OpenGL给我们提供了glDrawArrays函数，它使用当前激活的着色器，之前定义的顶点属性配置，和VBO的顶点数据（通过VAO间接绑定）来绘制图元。
 		//第一个参数是我们打算绘制的OpenGL图元的类型。第二个参数指定了顶点数组的起始索引，我们这里填0。最后一个参数指定我们打算绘制多少个顶点，这里是3（我们只从我们的数据中渲染一个三角形，它只有3个顶点长）。
-		glDrawArrays(GL_TRIANGLES, 0, 3); //若想绘制两个三角形，第三个参数可以改为6
+		glDrawArrays(GL_TRIANGLES, 0, 3); //若想绘制第二个三角形，第三个参数可以改为6
 		// glBindVertexArray(0); // no need to unbind it every time 
 
 		// 检查并调用事件，交换缓冲
