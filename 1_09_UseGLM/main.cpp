@@ -32,13 +32,13 @@ void processInput(GLFWwindow *window)
 
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 	{
-		mixValue += 0.01f; // change this value accordingly (might be too slow or too fast based on system hardware)
+		mixValue += 0.001f; // change this value accordingly (might be too slow or too fast based on system hardware)
 		if (mixValue >= 1.0f)
 			mixValue = 1.0f;
 	}
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 	{
-		mixValue -= 0.01f; // change this value accordingly (might be too slow or too fast based on system hardware)
+		mixValue -= 0.001f; // change this value accordingly (might be too slow or too fast based on system hardware)
 		if (mixValue <= 0.0f)
 			mixValue = 0.0f;
 	}
@@ -112,9 +112,9 @@ int main()
 	第二个参数指定传输数据的大小(以字节为单位)；用一个简单的sizeof计算出顶点数据大小就行。
 	第三个参数是我们希望发送的实际数据。
 	第四个参数指定了我们希望显卡如何管理给定的数据。它有三种形式：
-	GL_STATIC_DRAW ：数据不会或几乎不会改变。
-	GL_DYNAMIC_DRAW：数据会被改变很多。
-	GL_STREAM_DRAW ：数据每次绘制时都会改变。
+		GL_STATIC_DRAW ：数据不会或几乎不会改变。
+		GL_DYNAMIC_DRAW：数据会被改变很多。
+		GL_STREAM_DRAW ：数据每次绘制时都会改变。
 	三角形的位置数据不会改变，每次渲染调用时都保持原样，所以它的使用类型最好是GL_STATIC_DRAW。
 	如果，比如说一个缓冲中的数据将频繁被改变，那么使用的类型就是GL_DYNAMIC_DRAW或GL_STREAM_DRAW，这样就能确保显卡把数据放在能够高速写入的内存部分。
 	*/
@@ -129,10 +129,10 @@ int main()
 	//我们必须在渲染前指定OpenGL该如何解释顶点数据。
 	/*
 	我们的顶点缓冲数据会被解析为下面这样子：
-	1.位置数据被储存为32位（4字节）浮点值。
-	2.每个位置包含3个这样的值。
-	3.在这3个值之间没有空隙（或其他值）。这几个值在数组中紧密排列(Tightly Packed)。
-	4.数据中第一个值在缓冲开始的位置。
+		1.位置数据被储存为32位（4字节）浮点值。
+		2.每个位置包含3个这样的值。
+		3.在这3个值之间没有空隙（或其他值）。这几个值在数组中紧密排列(Tightly Packed)。
+		4.数据中第一个值在缓冲开始的位置。
 	*/
 
 	/*
@@ -165,7 +165,7 @@ int main()
 
 	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis
 
-											//载入图片
+	//载入图片
 	int width, height, nrChannels;
 	unsigned char *data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
 	if (data == NULL)
@@ -259,7 +259,9 @@ int main()
 		ourShader.use();
 
 		glm::mat4 trans = glm::mat4(1.0f);
-		trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+		trans = glm::translate(trans, glm::vec3(0.3f, -0.3f, 0.0f));
+		//trans = glm::scale(trans, glm::vec3(0.5, 1.0, 1.0));
+		//trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
 		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
 		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");

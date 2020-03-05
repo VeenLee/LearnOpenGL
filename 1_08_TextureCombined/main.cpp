@@ -28,13 +28,13 @@ void processInput(GLFWwindow *window)
 
 	if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
 	{
-		mixValue += 0.01f; // change this value accordingly (might be too slow or too fast based on system hardware)
+		mixValue += 0.001f; // change this value accordingly (might be too slow or too fast based on system hardware)
 		if (mixValue >= 1.0f)
 			mixValue = 1.0f;
 	}
 	if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 	{
-		mixValue -= 0.01f; // change this value accordingly (might be too slow or too fast based on system hardware)
+		mixValue -= 0.001f; // change this value accordingly (might be too slow or too fast based on system hardware)
 		if (mixValue <= 0.0f)
 			mixValue = 0.0f;
 	}
@@ -231,10 +231,13 @@ int main()
 	stbi_image_free(data);
 
 	ourShader.use();
+
+	//一个纹理的位置值通常称为一个纹理单元(Texture Unit)。一个纹理的默认纹理单元是0，它是默认的激活纹理单元
+	//使用glUniform1i设置每个采样器的方式告诉OpenGL每个着色器采样器属于哪个纹理单元
 	// either set it manually like so:
 	glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
 	// or set it via the texture class
-	ourShader.setInt("texture2", 1);
+	ourShader.setInt("texture2", 2);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -249,7 +252,7 @@ int main()
 		//应用纹理
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, texture1);
-		glActiveTexture(GL_TEXTURE1);
+		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
 		ourShader.use();
