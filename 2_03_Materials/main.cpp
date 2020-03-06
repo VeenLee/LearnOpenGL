@@ -256,8 +256,8 @@ int main()
 		lightColor.x = sin(glfwGetTime() * 2.0f);
 		lightColor.y = sin(glfwGetTime() * 0.7f);
 		lightColor.z = sin(glfwGetTime() * 1.3f);
-		glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); // decrease the influence
-		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
+		glm::vec3 diffuseColor = lightColor   * glm::vec3(0.5f); // decrease the influence 降低影响
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence 很低的影响
 		glUniform3fv(glGetUniformLocation(cubeShader.ID, "light.ambient"), 1, &ambientColor[0]);
 		glUniform3fv(glGetUniformLocation(cubeShader.ID, "light.diffuse"), 1, &diffuseColor[0]);
 		glUniform3f(glGetUniformLocation(cubeShader.ID, "light.specular"), 1.0f, 1.0f, 1.0f);
