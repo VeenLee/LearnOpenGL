@@ -1,5 +1,5 @@
 ﻿//
-// 材质,为每个物体定义一个材质(Material)属性
+// 光照贴图，漫反射贴图、镜面光贴图、放射光贴图
 //
 
 #include <iostream>
@@ -219,9 +219,18 @@ int main()
 
 	//漫反射贴图
 	unsigned int diffuseMap = loadTexture("container2.png");
-
 	cubeShader.use();
 	cubeShader.setInt("material.diffuse", 0);
+
+	//镜面光贴图
+	unsigned int specularMap = loadTexture("container2_specular.png");
+	cubeShader.use();
+	cubeShader.setInt("material.specular", 1);
+
+	//放射光贴图
+	unsigned int emissionMap = loadTexture("matrix.jpg");
+	cubeShader.use();
+	cubeShader.setInt("material.emission", 2);
 
 	while (!glfwWindowShouldClose(window))
 	{
@@ -260,7 +269,7 @@ int main()
 
 		glUniform3fv(glGetUniformLocation(cubeShader.ID, "viewPos"), 1, &camera.Position[0]);
 		glUniform3fv(glGetUniformLocation(cubeShader.ID, "light.position"), 1, &lightPos[0]);
-
+		 
 		// light properties
 		glm::vec3 diffuseColor = glm::vec3(0.5f, 0.5f, 0.5f);
 		glm::vec3 ambientColor = glm::vec3(0.2f, 0.2f, 0.2f);
@@ -278,6 +287,14 @@ int main()
 		glActiveTexture(GL_TEXTURE0); // 在绑定纹理之前先激活纹理单元，纹理单元GL_TEXTURE0默认总是被激活
 		//绑定纹理对象
 		glBindTexture(GL_TEXTURE_2D, diffuseMap);
+
+		glActiveTexture(GL_TEXTURE1); // 在绑定纹理之前先激活纹理单元，纹理单元GL_TEXTURE0默认总是被激活
+		//绑定纹理对象
+		glBindTexture(GL_TEXTURE_2D, specularMap);
+
+		glActiveTexture(GL_TEXTURE2); // 在绑定纹理之前先激活纹理单元，纹理单元GL_TEXTURE0默认总是被激活
+		//绑定纹理对象
+		glBindTexture(GL_TEXTURE_2D, emissionMap);
 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
