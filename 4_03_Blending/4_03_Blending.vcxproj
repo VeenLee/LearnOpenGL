@@ -38,11 +38,11 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{08DD8E14-FECB-4525-8B1C-717CCE6CCFC8}</ProjectGuid>
+    <ProjectGuid>{4E5EB098-DD4C-4C0E-B9E7-A9216488134F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>My205LightCasters</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>4_01_DepthTesting</ProjectName>
+    <ProjectName>4_03_Blending</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

@@ -23,6 +23,8 @@
     <ClInclude Include="shader_s.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="framebuffers_screen.fs" />
+    <None Include="framebuffers_screen.vs" />
     <None Include="shader.fs" />
     <None Include="shader.vs" />
   </ItemGroup>
@@ -38,11 +40,11 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{08DD8E14-FECB-4525-8B1C-717CCE6CCFC8}</ProjectGuid>
+    <ProjectGuid>{59174194-5FB4-4E26-BB21-2319DDFFFD2F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>My205LightCasters</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>4_01_DepthTesting</ProjectName>
+    <ProjectName>4_05_Framebuffers</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

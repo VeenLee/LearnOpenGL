@@ -25,6 +25,7 @@
   <ItemGroup>
     <None Include="shader.fs" />
     <None Include="shader.vs" />
+    <None Include="shader_singlecolor.fs" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\libs\glad.c">
@@ -38,11 +39,11 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{08DD8E14-FECB-4525-8B1C-717CCE6CCFC8}</ProjectGuid>
+    <ProjectGuid>{4B329B80-EDE6-4EB0-9364-DCFCF6CE45E7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>My205LightCasters</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>4_01_DepthTesting</ProjectName>
+    <ProjectName>4_02_StencilTesting</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

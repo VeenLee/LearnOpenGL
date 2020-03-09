@@ -1,5 +1,5 @@
 ﻿//
-//深度测试
+// 面剔除，只绘制面向观察者的面
 //
 
 #include <glad/glad.h>
@@ -16,6 +16,10 @@
 #include "stb_image.h"
 
 #include <iostream>
+
+#include <vector>
+#include <map>
+using namespace std;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
@@ -79,6 +83,12 @@ int main()
 	// -----------------------------
 	glEnable(GL_DEPTH_TEST);
 	//glDepthFunc(GL_ALWAYS); // always pass the depth test (same effect as glDisable(GL_DEPTH_TEST))
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_BACK);
+	//glFrontFace(GL_CW);
 
 	// build and compile shaders
 	// -------------------------
@@ -87,48 +97,48 @@ int main()
 	// set up vertex data (and buffer(s)) and configure vertex attributes
 	// ------------------------------------------------------------------
 	float cubeVertices[] = {
-		// positions          // texture Coords
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+		// Back face
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // Bottom-left
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
+		 0.5f, -0.5f, -0.5f,  1.0f, 0.0f, // bottom-right         
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right
+		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f, // bottom-left
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
+		// Front face
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
+		 0.5f,  0.5f,  0.5f,  1.0f, 1.0f, // top-right
+		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f, // top-left
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left
+		// Left face
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
+		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-left
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-left
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
+		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-right
+		// Right face
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right         
+		 0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // bottom-right
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // top-left
+		 0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-left     
+		// Bottom face
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
+		 0.5f, -0.5f, -0.5f,  1.0f, 1.0f, // top-left
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
+		 0.5f, -0.5f,  0.5f,  1.0f, 0.0f, // bottom-left
+		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f, // bottom-right
+		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f, // top-right
+		// Top face
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
+		 0.5f,  0.5f, -0.5f,  1.0f, 1.0f, // top-right     
+		 0.5f,  0.5f,  0.5f,  1.0f, 0.0f, // bottom-right
+		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f, // top-left
+		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f  // bottom-left        
 	};
 	float planeVertices[] = {
 		// positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
@@ -139,6 +149,16 @@ int main()
 		 5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
 		-5.0f, -0.5f, -5.0f,  0.0f, 2.0f,
 		 5.0f, -0.5f, -5.0f,  2.0f, 2.0f
+	};
+	float transparentVertices[] = {
+		// positions         // texture Coords (swapped y coordinates because texture is flipped upside down)
+		0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+		0.0f, -0.5f,  0.0f,  0.0f,  1.0f,
+		1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+
+		0.0f,  0.5f,  0.0f,  0.0f,  0.0f,
+		1.0f, -0.5f,  0.0f,  1.0f,  1.0f,
+		1.0f,  0.5f,  0.0f,  1.0f,  0.0f
 	};
 	// cube VAO
 	unsigned int cubeVAO, cubeVBO;
@@ -164,16 +184,37 @@ int main()
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glBindVertexArray(0);
+	// transparent VAO
+	unsigned int transparentVAO, transparentVBO;
+	glGenVertexArrays(1, &transparentVAO);
+	glGenBuffers(1, &transparentVBO);
+	glBindVertexArray(transparentVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, transparentVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(transparentVertices), transparentVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glBindVertexArray(0);
 
 	// load textures
 	// -------------
 	unsigned int cubeTexture = loadTexture("marble.jpg");
 	unsigned int floorTexture = loadTexture("metal.png");
+	unsigned int grassTexture = loadTexture("grass.png");
+	unsigned int transparentTexture = loadTexture("window.png");
 
 	// shader configuration
 	// --------------------
 	shader.use();
 	shader.setInt("texture1", 0);
+
+	vector<glm::vec3> vegetation;
+	vegetation.push_back(glm::vec3(-1.5f, 0.0f, -0.48f));
+	vegetation.push_back(glm::vec3(1.5f, 0.0f, 0.51f));
+	vegetation.push_back(glm::vec3(0.0f, 0.0f, 0.7f));
+	vegetation.push_back(glm::vec3(-0.3f, 0.0f, -2.3f));
+	vegetation.push_back(glm::vec3(0.5f, 0.0f, -0.6f));
 
 	// render loop
 	// -----------
@@ -217,6 +258,25 @@ int main()
 		shader.setMat4("model", glm::mat4(1.0f));
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
+
+		////根据距离值排序。要想让混合在多个物体上工作，我们需要最先绘制最远的物体，最后绘制最近的物体
+		//std::map<float, glm::vec3> sorted;
+		//for (unsigned int i = 0; i < vegetation.size(); i++)
+		//{
+		//	float distance = glm::length(camera.Position - vegetation[i]);
+		//	sorted[distance] = vegetation[i];
+		//}
+
+		//glBindVertexArray(transparentVAO);
+		////glBindTexture(GL_TEXTURE_2D, grassTexture);
+		//glBindTexture(GL_TEXTURE_2D, transparentTexture);
+		//for (std::map<float, glm::vec3>::reverse_iterator it = sorted.rbegin(); it != sorted.rend(); ++it)
+		//{
+		//	model = glm::mat4(1.0f);
+		//	model = glm::translate(model, it->second);
+		//	shader.setMat4("model", model);
+		//	glDrawArrays(GL_TRIANGLES, 0, 6);
+		//}
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
@@ -290,7 +350,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 // utility function for loading a 2D texture from file
 // ---------------------------------------------------
-unsigned int loadTexture(char const *path)
+unsigned int loadTexture(char const * path)
 {
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
@@ -311,8 +371,8 @@ unsigned int loadTexture(char const *path)
 		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT); // for this tutorial: use GL_CLAMP_TO_EDGE to prevent semi-transparent borders. Due to interpolation it takes texels from next repeat 
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, format == GL_RGBA ? GL_CLAMP_TO_EDGE : GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
