@@ -1,5 +1,5 @@
 ﻿//
-// 多光源，在场景中使用多个光源
+// 模型加载库，Open Asset Import Library, Assimp能够导入很多种不同的模型文件格式（并也能够导出部分的格式），它会将所有的模型数据加载至Assimp的通用数据结构中。
 //
 
 #include <glad/glad.h>
