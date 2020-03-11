@@ -54,8 +54,8 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
 
-														 // glfw window creation
-														 // --------------------
+	// glfw window creation
+	// --------------------
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
 	if (window == NULL)
 	{
@@ -145,14 +145,14 @@ int main()
 		5.0f, -0.5f, -5.0f,  2.0f, 2.0f
 	};
 	float quadVertices[] = { // vertex attributes for a quad that fills the entire screen in Normalized Device Coordinates.
-							 // positions   // texCoords
+		// positions   // texCoords
 		-1.0f,  1.0f,  0.0f, 1.0f,
 		-1.0f, -1.0f,  0.0f, 0.0f,
-		1.0f, -1.0f,  1.0f, 0.0f,
+		1.0f,  -1.0f,  1.0f, 0.0f,
 
 		-1.0f,  1.0f,  0.0f, 1.0f,
-		1.0f, -1.0f,  1.0f, 0.0f,
-		1.0f,  1.0f,  1.0f, 1.0f
+		1.0f,  -1.0f,  1.0f, 0.0f,
+		1.0f,   1.0f,  1.0f, 1.0f
 	};
 	// cube VAO
 	unsigned int cubeVAO, cubeVBO;
