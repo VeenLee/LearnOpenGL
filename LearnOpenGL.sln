@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1022
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "1_01_EmptyWindow", "1_01_EmptyWindow\1_01_EmptyWindow.vcxproj", "{C211F7E9-5857-49BE-8F56-3E3BFDAF1EB0}"
 EndProject
@@ -88,6 +88,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "5_06_ParallaxMapping", "5_06_ParallaxMapping\5_06_ParallaxMapping.vcxproj", "{AAB259B0-8B95-4E1E-86B9-2BF035970F83}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "5_07_HDR", "5_07_HDR\5_07_HDR.vcxproj", "{F822C0C6-E42A-4FFA-896F-7C5C845BDE6D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "7_03_2D-Game", "7_03_2D-Game\7_03_2D-Game.vcxproj", "{2270D863-8EC1-42A8-B770-6011B1816584}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -429,6 +431,14 @@ Global
 		{F822C0C6-E42A-4FFA-896F-7C5C845BDE6D}.Release|x64.Build.0 = Release|x64
 		{F822C0C6-E42A-4FFA-896F-7C5C845BDE6D}.Release|x86.ActiveCfg = Release|Win32
 		{F822C0C6-E42A-4FFA-896F-7C5C845BDE6D}.Release|x86.Build.0 = Release|Win32
+		{2270D863-8EC1-42A8-B770-6011B1816584}.Debug|x64.ActiveCfg = Debug|x64
+		{2270D863-8EC1-42A8-B770-6011B1816584}.Debug|x64.Build.0 = Debug|x64
+		{2270D863-8EC1-42A8-B770-6011B1816584}.Debug|x86.ActiveCfg = Debug|Win32
+		{2270D863-8EC1-42A8-B770-6011B1816584}.Debug|x86.Build.0 = Debug|Win32
+		{2270D863-8EC1-42A8-B770-6011B1816584}.Release|x64.ActiveCfg = Release|x64
+		{2270D863-8EC1-42A8-B770-6011B1816584}.Release|x64.Build.0 = Release|x64
+		{2270D863-8EC1-42A8-B770-6011B1816584}.Release|x86.ActiveCfg = Release|Win32
+		{2270D863-8EC1-42A8-B770-6011B1816584}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
