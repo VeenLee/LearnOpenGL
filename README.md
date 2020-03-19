@@ -26,9 +26,10 @@ http://www.mbsoftworks.sk/tutorials/opengl3/
 https://www.jianshu.com/p/b5f8627d9cbc
 
 opengles3-book官方源码有问题，需要做如下修改：
-edit opengles3-book-master\Common\Source\Win32\esUtil_win32.c
-ESContext *esContext = ( ESContext * ) ( LONG_PTR ) GetWindowLongPtr ( hWnd, GWL_USERDATA );
-if (esContext == NULL)
-{
-    return DefWindowProc(hWnd, uMsg, wParam, lParam);
+edit opengles3-book-master\Common\Source\Win32\esUtil_win32.c<br/>
+after ESContext *esContext = ( ESContext * ) ( LONG_PTR ) GetWindowLongPtr ( hWnd, GWL_USERDATA );<br/>
+Add:<br/>
+if (esContext == NULL)<br/>
+{<br/>
+    return DefWindowProc(hWnd, uMsg, wParam, lParam);<br/>
 }
