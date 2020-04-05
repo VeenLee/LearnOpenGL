@@ -25,9 +25,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
-unsigned int loadTexture(const char *path, bool gammaCorrection);
-void renderQuad();
-void renderCube();
 
 // settings
 const unsigned int SCR_WIDTH = 1280;
@@ -128,6 +125,12 @@ int main()
 
 	std::wstring wstrText = L"Test text";
 	//std::wstring wstrText = L"测试中文"; //如果需要显示汉字需要设置支持中文的字体文件，如simhei.ttf
+
+	// width	face->glyph->bitmap.width	位图宽度（像素）
+	// height	face->glyph->bitmap.rows	位图高度（像素）
+	// bearingX	face->glyph->bitmap_left	水平距离，即位图相对于原点的水平位置（像素）
+	// bearingY	face->glyph->bitmap_top	垂直距离，即位图相对于基准线的垂直位置（像素）
+	// advance	face->glyph->advance.x	水平预留值，即原点到下一个字形原点的水平距离（单位：1/64像素）
 
 	for (int i = 0; i < wstrText.length(); i++)
 	{
@@ -264,7 +267,7 @@ void RenderText(Shader& shader, std::wstring text, GLfloat x, GLfloat y, GLfloat
 
 		GLfloat w = ch.Size.x * scale;
 		GLfloat h = ch.Size.y * scale;
-		// Update VBO for each character
+		// 对每个字符更新VBO
 		GLfloat vertices[6][4] = {
 			{ xpos,     ypos + h,   0.0, 0.0 },
 			{ xpos,     ypos,       0.0, 1.0 },
@@ -274,17 +277,17 @@ void RenderText(Shader& shader, std::wstring text, GLfloat x, GLfloat y, GLfloat
 			{ xpos + w, ypos,       1.0, 1.0 },
 			{ xpos + w, ypos + h,   1.0, 0.0 }
 		};
-		// Render glyph texture over quad
+		// 在四边形上绘制字形纹理
 		glBindTexture(GL_TEXTURE_2D, ch.TextureID);
-		// Update content of VBO memory
+		// 更新VBO内存的内容
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // Be sure to use glBufferSubData and not glBufferData
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		// Render quad
 		glDrawArrays(GL_TRIANGLES, 0, 6);
-		// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-		x += (ch.Advance >> 6) * scale; // Bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
+		// 更新位置到下一个字形的原点，注意单位是1/64像素
+		x += (ch.Advance >> 6) * scale; // 位偏移6个单位来获取单位为像素的值 (2^6 = 64)
 	}
 	glBindVertexArray(0);
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -343,52 +346,4 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(yoffset);
-}
-
-// utility function for loading a 2D texture from file
-// ---------------------------------------------------
-unsigned int loadTexture(char const * path, bool gammaCorrection)
-{
-	unsigned int textureID;
-	glGenTextures(1, &textureID);
-
-	int width, height, nrComponents;
-	unsigned char *data = stbi_load(path, &width, &height, &nrComponents, 0);
-	if (data)
-	{
-		GLenum internalFormat;
-		GLenum dataFormat;
-		if (nrComponents == 1)
-		{
-			internalFormat = dataFormat = GL_RED;
-		}
-		else if (nrComponents == 3)
-		{
-			internalFormat = gammaCorrection ? GL_SRGB : GL_RGB;
-			dataFormat = GL_RGB;
-		}
-		else if (nrComponents == 4)
-		{
-			internalFormat = gammaCorrection ? GL_SRGB_ALPHA : GL_RGBA;
-			dataFormat = GL_RGBA;
-		}
-
-		glBindTexture(GL_TEXTURE_2D, textureID);
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-		stbi_image_free(data);
-	}
-	else
-	{
-		std::cout << "Texture failed to load at path: " << path << std::endl;
-		stbi_image_free(data);
-	}
-
-	return textureID;
 }
