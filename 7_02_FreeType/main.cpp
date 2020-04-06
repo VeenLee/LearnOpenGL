@@ -1,17 +1,22 @@
 ﻿//
-// HDR(High Dynamic Range, 高动态范围)
+// Freetype 文本渲染
 //
 
+#ifdef _MSC_VER
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#else
+#include <emscripten/emscripten.h>
+#include <emscripten/html5.h>
+#include <GLES2/gl2.h>
+#endif
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 #include "shader_s.h"
 #include "camera.h"
-#include "model.h"
 
 // FreeType
 #include "ft2build.h"
@@ -21,14 +26,16 @@
 #include <map>
 #include <string>
 
+#ifndef __EMSCRIPTEN__
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
+#endif
 
 // settings
-const unsigned int SCR_WIDTH = 1280;
-const unsigned int SCR_HEIGHT = 720;
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
 
 /// Holds all state information relevant to a character as loaded using FreeType
 struct Character {
@@ -53,8 +60,20 @@ bool firstMouse = true;
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+void ConvertGLRedToGLRGB(int iWidth, int iHeight, unsigned char* pRedData, unsigned char** pRGBData)
+{
+	for (int i = 0; i < iHeight; i++) {
+		for (int j = 0; j < iWidth; j++) {
+			(*pRGBData)[(i * iWidth + j) * 3] = pRedData[i * iWidth + j];
+			(*pRGBData)[(i * iWidth + j) * 3 + 1] = pRedData[i * iWidth + j];
+			(*pRGBData)[(i * iWidth + j) * 3 + 2] = pRedData[i * iWidth + j];
+		}
+	}
+}
+
 int main()
 {
+#ifndef __EMSCRIPTEN__
     // glfw: initialize and configure
     // ------------------------------
     glfwInit();
@@ -81,7 +100,7 @@ int main()
     glfwSetScrollCallback(window, scroll_callback);
 
     // tell GLFW to capture our mouse
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    //glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -90,6 +109,13 @@ int main()
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
+#else
+	EmscriptenWebGLContextAttributes attr;
+	emscripten_webgl_init_context_attributes(&attr);
+
+	EMSCRIPTEN_WEBGL_CONTEXT_HANDLE ctx = emscripten_webgl_create_context("#canvas", &attr);
+	emscripten_webgl_make_context_current(ctx);
+#endif
 
     // configure global opengl state
     // -----------------------------
@@ -100,7 +126,11 @@ int main()
 
     // build and compile shaders
     // -------------------------
+#ifndef __EMSCRIPTEN__
 	Shader shader("text.vs", "text.fs");
+#else
+	Shader shader("text.wasm.vs", "text.wasm.fs");
+#endif
 
 	glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(SCR_WIDTH), 0.0f, static_cast<GLfloat>(SCR_HEIGHT));
 	shader.use();
@@ -144,10 +174,12 @@ int main()
 			std::cout << "ERROR::FREETYTPE: Failed to load Glyph" << std::endl;
 			continue;
 		}
+
 		// Generate texture
 		GLuint texture;
 		glGenTextures(1, &texture);
 		glBindTexture(GL_TEXTURE_2D, texture);
+#ifndef __EMSCRIPTEN__
 		glTexImage2D(
 			GL_TEXTURE_2D,
 			0,
@@ -159,6 +191,23 @@ int main()
 			GL_UNSIGNED_BYTE,
 			face->glyph->bitmap.buffer
 		);
+#else
+		unsigned char* pRGBData = (unsigned char*)malloc(face->glyph->bitmap.width * face->glyph->bitmap.rows * 3);
+		ConvertGLRedToGLRGB(face->glyph->bitmap.width, face->glyph->bitmap.rows,
+			face->glyph->bitmap.buffer, &pRGBData);
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_RGB, //OpenGL ES 2.0不支持GL_RED
+			face->glyph->bitmap.width,
+			face->glyph->bitmap.rows,
+			0,
+			GL_RGB, //OpenGL ES 2.0不支持GL_RED
+			GL_UNSIGNED_BYTE,
+			pRGBData
+		);
+		free(pRGBData);
+#endif
 		// Set texture options
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -169,7 +218,7 @@ int main()
 			texture,
 			glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
 			glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-			face->glyph->advance.x
+			(GLuint)face->glyph->advance.x
 		};
 		Characters.insert(std::pair<wchar_t, Character>(wstrText[i], character));
 	}
@@ -178,41 +227,24 @@ int main()
 	FT_Done_Face(face);
 	FT_Done_FreeType(ft);
 
-	// configure floating point framebuffer
-	// ------------------------------------
-	unsigned int hdrFBO;
-	glGenFramebuffers(1, &hdrFBO);
-	// create floating point color buffer
-	unsigned int colorBuffer;
-	glGenTextures(1, &colorBuffer);
-	glBindTexture(GL_TEXTURE_2D, colorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// create depth buffer (renderbuffer)
-	unsigned int rboDepth;
-	glGenRenderbuffers(1, &rboDepth);
-	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
-	// attach buffers
-	glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-		std::cout << "Framebuffer not complete!" << std::endl;
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
 	// Configure VAO/VBO for texture quads
+#ifndef __EMSCRIPTEN__
 	glGenVertexArrays(1, &VAO);
+#endif
 	glGenBuffers(1, &VBO);
+#ifndef __EMSCRIPTEN__
 	glBindVertexArray(VAO);
+#endif
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+#ifndef __EMSCRIPTEN__
 	glBindVertexArray(0);
+#endif
 
+#ifndef __EMSCRIPTEN__
     // render loop
     // -----------
     while (!glfwWindowShouldClose(window))
@@ -226,26 +258,36 @@ int main()
         // input
         // -----
         processInput(window);
-
+#else
+	if (1)
+	{
+#endif
         // render
         // ------
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		RenderText(shader, wstrText, 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
 		//RenderText(shader, "(C) LearnOpenGL.com", 540.0f, 570.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f));
 
+#ifndef __EMSCRIPTEN__
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
         glfwSwapBuffers(window);
         glfwPollEvents();
+#else
+		emscripten_webgl_commit_frame();
+#endif
     }
 
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
     //glDeleteVertexArrays(1, &planeVAO);
 
+#ifndef __EMSCRIPTEN__
     glfwTerminate();
+#endif
+
     return 0;
 }
 
@@ -255,7 +297,9 @@ void RenderText(Shader& shader, std::wstring text, GLfloat x, GLfloat y, GLfloat
 	shader.use();
 	glUniform3f(glGetUniformLocation(shader.ID, "textColor"), color.x, color.y, color.z);
 	glActiveTexture(GL_TEXTURE0);
+#ifndef __EMSCRIPTEN__
 	glBindVertexArray(VAO);
+#endif
 
 	// Iterate through all characters
 	for (int i = 0; i < text.length(); i++)
@@ -289,10 +333,13 @@ void RenderText(Shader& shader, std::wstring text, GLfloat x, GLfloat y, GLfloat
 		// 更新位置到下一个字形的原点，注意单位是1/64像素
 		x += (ch.Advance >> 6) * scale; // 位偏移6个单位来获取单位为像素的值 (2^6 = 64)
 	}
+#ifndef __EMSCRIPTEN__
 	glBindVertexArray(0);
+#endif
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
+#ifndef __EMSCRIPTEN__
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
 void processInput(GLFWwindow *window)
@@ -347,3 +394,4 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(yoffset);
 }
+#endif

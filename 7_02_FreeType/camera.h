@@ -1,9 +1,16 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
+#ifdef _MSC_VER
 #include <glad/glad.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+#else
+#include <emscripten/emscripten.h>
+#include <emscripten/html5.h>
+#include <GLES2/gl2.h>
+#endif
+
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 
 #include <vector>
 
