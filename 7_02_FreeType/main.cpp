@@ -144,7 +144,7 @@ int main()
 
 	// Load font as face
 	FT_Face face;
-	if (FT_New_Face(ft, "LiberationSansBold.ttf", 0, &face))
+	if (FT_New_Face(ft, "simhei.ttf", 0, &face))
 		std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
 
 	// Set size to load glyphs as
@@ -153,8 +153,8 @@ int main()
 	// Disable byte-alignment restriction
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-	std::wstring wstrText = L"Test text";
-	//std::wstring wstrText = L"测试中文"; //如果需要显示汉字需要设置支持中文的字体文件，如simhei.ttf
+	//std::wstring wstrText = L"Test text";
+	std::wstring wstrText = L"测试中文，如果需要显示汉字\n需要设置支持中文的\n字体文件"; //如果需要显示汉字需要设置支持中文的字体文件，如simhei.ttf
 
 	// width	face->glyph->bitmap.width	位图宽度（像素）
 	// height	face->glyph->bitmap.rows	位图高度（像素）
@@ -267,7 +267,7 @@ int main()
         glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		RenderText(shader, wstrText, 25.0f, 25.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
+		RenderText(shader, wstrText, 20.0f, 200.0f, 1.0f, glm::vec3(0.5, 0.8f, 0.2f));
 		//RenderText(shader, "(C) LearnOpenGL.com", 540.0f, 570.0f, 0.5f, glm::vec3(0.3, 0.7f, 0.9f));
 
 #ifndef __EMSCRIPTEN__
@@ -301,13 +301,26 @@ void RenderText(Shader& shader, std::wstring text, GLfloat x, GLfloat y, GLfloat
 	glBindVertexArray(VAO);
 #endif
 
+	int iOriginX = x;
+	int iMaxLineHeight = 0;
+
 	// Iterate through all characters
 	for (int i = 0; i < text.length(); i++)
 	{
+		if (text.at(i) == L'\n') {
+			x = iOriginX;
+			y -= (iMaxLineHeight + 10);
+			continue;
+		}
+
 		Character ch = Characters[text[i]];
 
 		GLfloat xpos = x + ch.Bearing.x * scale;
 		GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+
+		if (iMaxLineHeight < ch.Size.y * scale) {
+			iMaxLineHeight = ch.Size.y * scale;
+		}
 
 		GLfloat w = ch.Size.x * scale;
 		GLfloat h = ch.Size.y * scale;
