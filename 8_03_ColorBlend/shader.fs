@@ -29,6 +29,6 @@ void main()
     vec4 dst = texture2D(textureBg, TexCoord);
     vec4 src = texture2D(textureFg, TexCoord);
 
-
-    gl_FragColor = dst;
+    float final_alpha = src.a + dst.a * (1.0 - src.a);
+    gl_FragColor = vec4((src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / final_alpha, final_alpha);
 }

@@ -1,5 +1,5 @@
 ﻿//
-// billboards, 广告牌
+// color blend, 颜色混合
 //
 
 #include <glad/glad.h>
@@ -85,17 +85,7 @@ int main()
 	// -------------------------
 	Shader shader("shader.vs", "shader.fs");
 
-	//stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis
-
-
-
-
-
-
-
-
-
-
+	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis
 
 	// load textures
 	// -------------
