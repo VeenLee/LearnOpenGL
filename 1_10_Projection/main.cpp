@@ -279,6 +279,10 @@ int main()
 	// 注意，我们将矩阵向我们要进行移动场景的反方向移动。
 	view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 	glm::mat4 projection;
+	//第一个参数定义了fov的值，它表示的是视野(Field of View)，并且设置了观察空间的大小。
+	//如果想要一个真实的观察效果，它的值通常设置为45.0f，但想要一个末日风格的结果你可以将其设置一个更大的值。
+	//第二个参数设置了宽高比，由视口的宽除以高所得。
+	//第三和第四个参数设置了平截头体的近和远平面。我们通常设置近距离为0.1f，而远距离设为100.0f。所有在近平面和远平面内且处于平截头体内的顶点都会被渲染。
 	projection = glm::perspective(glm::radians(45.0f), ((float)screenWidth) / (float)screenHeight, 0.1f, 100.0f);
 
 	glm::vec3 cubePositions[] = {
