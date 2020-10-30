@@ -193,6 +193,8 @@ int main()
 	//cubeShader.use();
 
 	glm::mat4 model = glm::mat4(1.0f);
+	//本示例直接使用了模型局部空间的法向量,如果模型发生了旋转或位移,显示效果可能会严重失真
+	//model = glm::rotate(model, glm::radians(80.0f), glm::vec3(0.5f, 1.0f, 0.0f));
 
 	glm::mat4 projection;
 	projection = glm::perspective(glm::radians(45.0f), ((float)screenWidth) / (float)screenHeight, 0.1f, 100.0f);
