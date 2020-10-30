@@ -261,6 +261,9 @@ int main()
 		glm::mat4 trans = glm::mat4(1.0f);
 		trans = glm::translate(trans, glm::vec3(0.3f, -0.3f, 0.0f));
 		//trans = glm::scale(trans, glm::vec3(0.5, 1.0, 1.0));
+		//用glm::radians将角度转化为弧度，glm::vec3(0.0, 0.0, 1.0)表示沿Z轴旋转
+		//角度 = 弧度 * (180.0f / PI)
+		//弧度 = 角度 * (PI / 180.0f)
 		//trans = glm::rotate(trans, glm::radians(90.0f), glm::vec3(0.0, 0.0, 1.0));
 		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
