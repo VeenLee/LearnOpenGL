@@ -268,6 +268,7 @@ int main()
 		trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
 
 		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+		//OpenGL中的矩阵是列主序的矩阵（和DX中的不同），GLM中生成的矩阵也是列主序的，所以我们设置成GL_FALSE，表示不用转换。
 		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
 		glBindVertexArray(VAO);
