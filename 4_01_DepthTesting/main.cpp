@@ -130,6 +130,8 @@ int main()
 		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
 		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
+	//GL_REPEAT指当纹理坐标的第一维坐标值大于1.0或小于0.0时，应该“重复”，即对坐标值加上一个合适的整数（可以是正数或负数），得到一个在[0.0, 1.0]范围内的值，然后用这个值作为新的纹理坐标。
+	//例如：某二维纹理，在绘制某形状时，一像素需要得到纹理中坐标为(3.5, 0.5)的像素的颜色，其中第一维的坐标值3.5超过了1.0，在GL_REPEAT方式中将被转化为(0.5, 0.5)。
 	float planeVertices[] = {
 		// positions          // texture Coords (note we set these higher than 1 (together with GL_REPEAT as texture wrapping mode). this will cause the floor texture to repeat)
 		 5.0f, -0.5f,  5.0f,  2.0f, 0.0f,
