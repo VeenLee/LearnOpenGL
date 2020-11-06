@@ -87,8 +87,9 @@ int main()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-	//glFrontFace(GL_CW);
+	glCullFace(GL_BACK); //GL_BACK：只剔除背向面。 GL_FRONT：只剔除正向面。 GL_FRONT_AND_BACK：剔除正向面和背向面。
+	//要注意，剔除功能只影响多边形，而对点和直线无影响。例如，使用glCullFace(GL_FRONT_AND_BACK)后，所有的多边形都将被剔除，所以看见的就只有点和直线。
+	//glFrontFace(GL_CW); //用来设置哪个面是正面。默认参数为GL_CCW表示逆时针为正面，如果设置成GL_CW则表示顺时针为正面。
 
 	// build and compile shaders
 	// -------------------------
