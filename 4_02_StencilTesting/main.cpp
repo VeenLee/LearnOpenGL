@@ -79,8 +79,13 @@ int main()
 	// -----------------------------
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
-	glEnable(GL_STENCIL_TEST);
+	glEnable(GL_STENCIL_TEST); //启用模板测试
 	glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
+	//glStencilOp设置应该如何更新缓冲，一共包含三个选项，能够设定每个选项应该采取的行为：
+	//sfail：模板测试失败时采取的行为。
+	//dpfail：模板测试通过，但深度测试失败时采取的行为。
+	//dppass：模板测试和深度测试都通过时采取的行为。
+	//下面的参数值表示如果其中的一个测试失败了，我们什么都不做，我们仅仅保留当前储存在模板缓冲中的值。如果模板测试和深度测试都通过了，那么我们希望将储存的模板值设置为参考值。参考值能够通过glStencilFunc来设置，在上一行代码中设置为了1。
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	// build and compile shaders
@@ -197,6 +202,7 @@ int main()
 		// render
 		// ------
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		//每次迭代之前清除模板缓冲
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		// set uniforms
@@ -220,10 +226,12 @@ int main()
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
 
-		// 1st. render pass, draw objects as normal, writing to the stencil buffer
-		// --------------------------------------------------------------------
-		glStencilFunc(GL_ALWAYS, 1, 0xFF);
-		glStencilMask(0xFF);
+		//1.在绘制（需要添加轮廓的）物体之前，将模板函数设置为GL_ALWAYS，每当物体的片段被渲染时，将模板缓冲更新为1。
+		//参数二 ref：设置了模板测试的参考值(Reference Value)。模板缓冲的内容将会与这个值进行比较。
+		//参数三 mask：设置一个掩码，它将会与参考值和储存的模板值在测试比较它们之前进行与(AND)运算。0xFF表示位掩码所有位都为1，不影响输出，如果将它设置为0x00，写入缓冲的所有模板值最后都会变成0
+		glStencilFunc(GL_ALWAYS, 1, 0xFF); //所有的片段都应该更新模板缓冲，如果在glStencilOp中设置了GL_REPLACE则会将模板值替换为第二个参数ref的值
+		glStencilMask(0xFF); //每一位写入模板缓冲时都保持原样
+		//2.渲染物体。
 		// cubes
 		glBindVertexArray(cubeVAO);
 		glActiveTexture(GL_TEXTURE0);
@@ -236,16 +244,16 @@ int main()
 		shader.setMat4("model", model);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
-		// 2nd. render pass: now draw slightly scaled versions of the objects, this time disabling stencil writing.
-		// Because the stencil buffer is now filled with several 1s. The parts of the buffer that are 1 are not drawn, thus only drawing 
-		// the objects' size differences, making it look like borders.
-		// -----------------------------------------------------------------------------------------------------------------------------
-		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
-		glStencilMask(0x00);
+		//绘制边框
+		//3.禁用模板写入以及深度测试。
+		glStencilMask(0x00); //每一位在写入模板缓冲时都会变成0（禁用写入）
 		glDisable(GL_DEPTH_TEST);
-		shaderSingleColor.use();
+		//4.将每个物体缩放一点点。
 		float scale = 1.1;
-		// cubes
+		//5.使用一个不同的片段着色器，输出一个单独的（边框）颜色。
+		shaderSingleColor.use();
+		//6.再次绘制物体，但只在它们片段的模板值不等于1时才绘制。(等于1的像素点为物体所覆盖的像素点，需要防止被边框颜色所覆盖)
+		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glBindVertexArray(cubeVAO);
 		glBindTexture(GL_TEXTURE_2D, cubeTexture);
 		model = glm::mat4(1.0f);
@@ -260,6 +268,7 @@ int main()
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 
+		//7.再次启用模板写入和深度测试。
 		glStencilMask(0xFF);
 		glEnable(GL_DEPTH_TEST);
 
