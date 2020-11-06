@@ -75,7 +75,8 @@ void Game::Init()
 	ResourceManager::LoadTexture("textures/powerup_chaos.png", GL_TRUE, "powerup_chaos");
 	ResourceManager::LoadTexture("textures/powerup_passthrough.png", GL_TRUE, "powerup_passthrough");
 	// Set render-specific controls
-	Renderer = new SpriteRenderer(ResourceManager::GetShader("sprite"));
+	Shader sprite = ResourceManager::GetShader("sprite");
+	Renderer = new SpriteRenderer(sprite);
 	Particles = new ParticleGenerator(ResourceManager::GetShader("particle"), ResourceManager::GetTexture("particle"), 500);
 	Effects = new PostProcessor(ResourceManager::GetShader("postprocessing"), this->Width, this->Height);
 	Text = new TextRenderer(this->Width, this->Height);
@@ -205,7 +206,8 @@ void Game::Render()
 		// Begin rendering to postprocessing quad
 		Effects->BeginRender();
 		// Draw background
-		Renderer->DrawSprite(ResourceManager::GetTexture("background"), glm::vec2(0, 0), glm::vec2(this->Width, this->Height), 0.0f);
+		Texture2D background = ResourceManager::GetTexture("background");
+		Renderer->DrawSprite(background, glm::vec2(0, 0), glm::vec2(this->Width, this->Height), 0.0f);
 		// Draw level
 		this->Levels[this->Level].Draw(*Renderer);
 		// Draw player
