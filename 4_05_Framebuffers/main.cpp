@@ -210,29 +210,40 @@ int main()
 	//每个缓冲都应该有相同的样本数。
 	unsigned int framebuffer;
 	glGenFramebuffers(1, &framebuffer);
-	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+	glBindFramebuffer(GL_FRAMEBUFFER, framebuffer); //在绑定到GL_FRAMEBUFFER目标之后，所有的读取和写入帧缓冲的操作将会影响当前绑定的帧缓冲
 
-	//把一个纹理附加到帧缓冲，所有的渲染指令将会写入到这个纹理中，就想它是一个普通的颜色/深度或模板缓冲一样。
+	//下面把一个纹理作为颜色缓冲附件附加到帧缓冲，所有的渲染指令将会写入到这个纹理中，就想它是一个普通的颜色/深度或模板缓冲一样。
 	//使用纹理的优点是，所有渲染操作的结果将会被储存在一个纹理图像中，我们之后可以在着色器中很方便地使用它。
+	//1.创建一个纹理
 	unsigned int textureColorbuffer;
 	glGenTextures(1, &textureColorbuffer);
 	glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//2.将刚创建的纹理附加到帧缓冲上
+	//glFrameBufferTexture2D有以下的参数：
+	//target：帧缓冲的目标（GL_DRAW_FRAMEBUFFER绘制、GL_READ_FRAMEBUFFER读取或者GL_FRAMEBUFFER两者皆有）
+	//attachment：想要附加的附件类型。当前我们正在附加一个颜色附件。注意最后的0意味着我们可以附加多个颜色附件。
+	//textarget：纹理目标类型，GL_TEXTURE_2D, GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, or GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+	//texture：要附加的纹理对象
+	//level：多级渐远纹理mipmap的级别
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
 
-	// 为帧缓冲创建深度缓冲和模板缓冲附件，并将附件附加到帧缓冲上(我们需要深度和模板值用于测试，但不需要对它们进行采样，所以渲染缓冲对象非常适合它们)
-	unsigned int rbo;
-	glGenRenderbuffers(1, &rbo);
-	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT); //GL_DEPTH24_STENCIL8封装了24位的深度和8位的模板缓冲
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); //附加这个渲染缓冲对象
+	//// 为帧缓冲创建深度缓冲和模板缓冲附件，并将附件附加到帧缓冲上(我们需要深度和模板值用于测试，但不需要对它们进行采样，所以渲染缓冲对象非常适合它们)
+	//unsigned int rbo;
+	//glGenRenderbuffers(1, &rbo);
+	//glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT); //GL_DEPTH24_STENCIL8封装了24位的深度和8位的模板缓冲
+	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); //附加这个渲染缓冲对象
 
 	// 检查帧缓冲是否完整
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 	}
+
+	//之后所有的渲染操作将会渲染到当前绑定帧缓冲的附件中。由于我们的帧缓冲不是默认帧缓冲，渲染指令将不会对窗口的视觉输出有任何影响。
+	//出于这个原因，渲染到一个不同的帧缓冲被叫做离屏渲染(Off-screen Rendering)。要保证所有的渲染操作在主窗口中有视觉效果，需要再次激活默认帧缓冲，将它绑定到0。
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// draw as wireframe
@@ -315,6 +326,7 @@ int main()
 	glDeleteBuffers(1, &cubeVBO);
 	glDeleteBuffers(1, &planeVBO);
 	glDeleteBuffers(1, &quadVBO);
+	//删除帧缓冲对象
 	glDeleteFramebuffers(1, &framebuffer);
 
 	glfwTerminate();

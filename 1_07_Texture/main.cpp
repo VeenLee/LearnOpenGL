@@ -212,6 +212,8 @@ int main()
 	// ------------------------------------------------------------------------
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO);
+	//释放纹理显存
+	glDeleteTextures(1, &texture1);
 
 	glfwTerminate();
 
