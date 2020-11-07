@@ -230,12 +230,12 @@ int main()
 	//level：多级渐远纹理mipmap的级别
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
 
-	//// 为帧缓冲创建深度缓冲和模板缓冲附件，并将附件附加到帧缓冲上(我们需要深度和模板值用于测试，但不需要对它们进行采样，所以渲染缓冲对象非常适合它们)
-	//unsigned int rbo;
-	//glGenRenderbuffers(1, &rbo);
-	//glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-	//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT); //GL_DEPTH24_STENCIL8封装了24位的深度和8位的模板缓冲
-	//glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); //附加这个渲染缓冲对象
+	// 为帧缓冲创建深度缓冲和模板缓冲附件，并将附件附加到帧缓冲上(我们需要深度和模板值用于测试，但不需要对它们进行采样，所以渲染缓冲对象非常适合它们)
+	unsigned int rbo;
+	glGenRenderbuffers(1, &rbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, SCR_WIDTH, SCR_HEIGHT); //GL_DEPTH24_STENCIL8封装了24位的深度和8位的模板缓冲
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo); //附加这个渲染缓冲对象
 
 	// 检查帧缓冲是否完整
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
