@@ -203,6 +203,8 @@ int main()
 		// ------
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		//每次迭代之前清除模板缓冲
+		//glClear将窗口的位平面区域设置为先前由glClearColor，glClearDepth和glClearStencil选择的值
+		//glClearDepth默认值为1，glClearStencil默认值为0
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 		// set uniforms

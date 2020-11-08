@@ -230,6 +230,9 @@ int main()
 	//level：多级渐远纹理mipmap的级别
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
 
+	//渲染缓冲对象能为帧缓冲对象提供一些优化。通常的规则是，如果不需要从一个缓冲中采样数据，那么对这个缓冲使用渲染缓冲对象会是明智的选择。
+	//如果需要从缓冲中采样颜色或深度值等数据，那么应该选择纹理附件。性能方面它不会产生非常大的影响的。
+
 	// 为帧缓冲创建深度缓冲和模板缓冲附件，并将附件附加到帧缓冲上(我们需要深度和模板值用于测试，但不需要对它们进行采样，所以渲染缓冲对象非常适合它们)
 	unsigned int rbo;
 	glGenRenderbuffers(1, &rbo);

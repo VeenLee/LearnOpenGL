@@ -141,12 +141,12 @@ int main()
 
 	// configure a uniform buffer object
 	// ---------------------------------
-	// first. We get the relevant block indices
+	//1.通过glGetUniformBlockIndex获取Uniform块索引(Uniform Block Index)
 	unsigned int uniformBlockIndexRed = glGetUniformBlockIndex(shaderRed.ID, "Matrices");
 	unsigned int uniformBlockIndexGreen = glGetUniformBlockIndex(shaderGreen.ID, "Matrices");
 	unsigned int uniformBlockIndexBlue = glGetUniformBlockIndex(shaderBlue.ID, "Matrices");
 	unsigned int uniformBlockIndexYellow = glGetUniformBlockIndex(shaderYellow.ID, "Matrices");
-	// then we link each shader's uniform block to this uniform binding point
+	//2.将Uniform块绑定到一个特定的绑定点中
 	glUniformBlockBinding(shaderRed.ID, uniformBlockIndexRed, 0);
 	glUniformBlockBinding(shaderGreen.ID, uniformBlockIndexGreen, 0);
 	glUniformBlockBinding(shaderBlue.ID, uniformBlockIndexBlue, 0);

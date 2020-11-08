@@ -258,9 +258,9 @@ int main()
 		glBindVertexArray(0);
 
 		// draw skybox as last
-		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+		glDepthFunc(GL_LEQUAL); //小于或者等于可以通过
 		skyboxShader.use();
-		view = glm::mat4(glm::mat3(camera.GetViewMatrix())); // remove translation from the view matrix
+		view = glm::mat4(glm::mat3(camera.GetViewMatrix())); //通过取4x4矩阵左上角的3x3矩阵来移除变换矩阵的位移部分，使天空盒以玩家为中心，不论玩家移动了多远，天空盒都不会变近
 		skyboxShader.setMat4("view", view);
 		skyboxShader.setMat4("projection", projection);
 		// skybox cube
@@ -414,6 +414,9 @@ unsigned int loadCubemap(vector<std::string> faces)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	//为纹理的R坐标设置环绕方式，它对应的是纹理的第三个维度（和位置的z一样）。
+	//我们将环绕方式设置为GL_CLAMP_TO_EDGE，这是因为正好处于两个面之间的纹理坐标可能不能击中一个面（由于一些硬件限制），
+	//OpenGL将在我们对两个面之间采样的时候，永远返回它们的边界值。
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	return textureID;
