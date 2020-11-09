@@ -139,6 +139,9 @@ int main()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
+	//使用uniform块，我们需要将需要共享的uniform块绑定到OpenGL的相同绑定点，然后用OpenGL的GL_UNIFORM_BUFFER绑定到一致的位置，
+	//通过操作uniform缓存对象来设置着色器中uniform块中的变量值。节省了对每个着色器都设置一遍的累赘操作。
+
 	// configure a uniform buffer object
 	// ---------------------------------
 	//1.通过glGetUniformBlockIndex获取Uniform块索引(Uniform Block Index)
@@ -146,21 +149,21 @@ int main()
 	unsigned int uniformBlockIndexGreen = glGetUniformBlockIndex(shaderGreen.ID, "Matrices");
 	unsigned int uniformBlockIndexBlue = glGetUniformBlockIndex(shaderBlue.ID, "Matrices");
 	unsigned int uniformBlockIndexYellow = glGetUniformBlockIndex(shaderYellow.ID, "Matrices");
-	//2.将Uniform块绑定到一个特定的绑定点中
-	glUniformBlockBinding(shaderRed.ID, uniformBlockIndexRed, 0);
-	glUniformBlockBinding(shaderGreen.ID, uniformBlockIndexGreen, 0);
-	glUniformBlockBinding(shaderBlue.ID, uniformBlockIndexBlue, 0);
-	glUniformBlockBinding(shaderYellow.ID, uniformBlockIndexYellow, 0);
-	// Now actually create the buffer
+	//2.将Uniform块绑定到一个特定的绑定点中,本例设置为3
+	glUniformBlockBinding(shaderRed.ID, uniformBlockIndexRed, 3);
+	glUniformBlockBinding(shaderGreen.ID, uniformBlockIndexGreen, 3);
+	glUniformBlockBinding(shaderBlue.ID, uniformBlockIndexBlue, 3);
+	glUniformBlockBinding(shaderYellow.ID, uniformBlockIndexYellow, 3);
+	//3.创建Uniform缓冲对象
 	unsigned int uboMatrices;
 	glGenBuffers(1, &uboMatrices);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
 	glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(glm::mat4), NULL, GL_STATIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
-	// define the range of the buffer that links to a uniform binding point
-	glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(glm::mat4));
+	//4.并将其绑定到绑定点3
+	glBindBufferRange(GL_UNIFORM_BUFFER, 3, uboMatrices, 0, 2 * sizeof(glm::mat4));
 
-	// store the projection matrix (we only do this once now) (note: we're not using zoom anymore by changing the FoV)
+	//5.通过偏移值写入数据,当前操作为写入投影矩阵数据
 	glm::mat4 projection = glm::perspective(45.0f, (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 	glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
 	glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(glm::mat4), glm::value_ptr(projection));
@@ -185,7 +188,7 @@ int main()
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// set the view and projection matrix in the uniform block - we only have to do this once per loop iteration.
+		//6.通过偏移值写入数据,当前操作为写入观察矩阵数据
 		glm::mat4 view = camera.GetViewMatrix();
 		glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
 		glBufferSubData(GL_UNIFORM_BUFFER, sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(view));
