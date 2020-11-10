@@ -47,6 +47,27 @@ int main()
 	//现在再调用glfwCreateWindow创建渲染窗口时，每个屏幕坐标就会使用一个包含4个子采样点的颜色缓冲了。GLFW会自动创建一个每像素4个子采样点的深度和样本缓冲。这也意味着所有缓冲的大小都增长了4倍。
 	glfwWindowHint(GLFW_SAMPLES, 4);
 
+	//MSAA的原理是在一个片元内设置多个采样点（2个、4个或者8个），根据被包含的采样点数量来确定当前像素的颜色。
+	//也就是说，如果我设置了4个采样点，其中有两个采样点被包含进去了，那么这个像素的颜色就是物体颜色的一半浓度。
+
+
+	//作者：文刀秋二
+	//	链接：https ://www.zhihu.com/question/20236638/answer/44821615
+	//来源：知乎
+	//MSAA（Multi-Sampling AA）则很聪明的只是在光栅化阶段，判断一个三角形是否被像素覆盖的时候会计算多个覆盖样本（Coverage sample），但是在pixel shader着色阶段计算像素颜色的时候每个像素还是只计算一次。例如下图是4xMSAA，三角形只覆盖了4个coverage sample中的2个。所以这个三角形需要生成一个fragment在pixel shader里着色，只不过生成的fragment还是在像素中央（位置，法线等信息插值到像素中央）然后只运行一次pixel shader，最后得到的结果在resolve阶段会乘以0.5，因为这个三角形只cover了一半的sample。现代所有GPU都在硬件上实现了这个算法，而且在shading的运算量远大于光栅化的今天，这个方法远比SSAA快很多。顺便提一下之前NV的CSAA，它就是更进一步的把coverage sample和depth，stencil test分开了。
+
+	//抗锯齿Anti-Aliasing技术综述：https://www.jianshu.com/p/fc459e883a1e
+
+	//	作者：xiaocai
+	// 链接：https://www.zhihu.com/question/58595055/answer/157756410
+	//来源：知乎
+	//默认每个pixel只执行1次，即Pixel Frequency，也就是说PS只执行算出每个像素中心的color，然后copy给4个sample。当然前面说了，这份copy不一定来自像素中心，也可以是像素的其他位置，例如DX中如果把color的插值方式声明为Centroid，那么当像素中心不在三角形内部（但有Sample在三角形内），则会选择三角形内的Sample，避免“Outerpolate”。
+	//Pixel Frequency的好处是PS仍然是1x的，降低消耗，但有时候视觉效果不太好，所以也可以开启Sample Frequency，要求一个pixel的4个sample分别由4个PS负责执行，每个sample计算各自的color。可以参考ARB_sample_shading的说明：https ://www.khronos.org/registry/Op
+
+	//WebGPU学习（三）:MSAA
+	//https://zhuanlan.zhihu.com/p/95930763
+
+
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
@@ -79,7 +100,7 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
-	//启用多重采样
+	//启用多重采样，只要默认的帧缓冲有了多重采样缓冲的附件，我们所要做的只是调用glEnable来启用多重采样。因为多重采样的算法都在OpenGL驱动的光栅器中实现了，我们不需要再多做什么。
 	glEnable(GL_MULTISAMPLE); // Enabled by default on some drivers, but not all so always enable to make sure
 
     // build and compile shaders

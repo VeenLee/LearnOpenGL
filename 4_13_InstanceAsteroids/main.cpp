@@ -25,7 +25,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 155.0f));
+Camera camera(glm::vec3(0.0f, 20.0f, 200.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -79,7 +79,7 @@ int main()
     // build and compile shaders
     // -------------------------
     Shader asteroidShader("shader.vs", "shader.fs");
-    //Shader planetShader("10.3.planet.vs", "10.3.planet.fs");
+    Shader planetShader("planet.vs", "planet.fs");
 
     // load models
     // -----------
@@ -97,7 +97,7 @@ int main()
     for (unsigned int i = 0; i < amount; i++)
     {
         glm::mat4 model = glm::mat4(1.0f);
-        // 1. translation: displace along circle with 'radius' in range [-offset, offset]
+        // 1. 位移：分布在半径为 'radius' 的圆形上，偏移的范围是 [-offset, offset]
         float angle = (float)i / (float)amount * 360.0f;
         float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
         float x = sin(angle) * radius + displacement;
@@ -107,29 +107,26 @@ int main()
         float z = cos(angle) * radius + displacement;
         model = glm::translate(model, glm::vec3(x, y, z));
 
-        // 2. scale: Scale between 0.05 and 0.25f
+        // 2. 缩放：在 0.05 和 0.25f 之间缩放
         float scale = (rand() % 20) / 100.0f + 0.05;
         model = glm::scale(model, glm::vec3(scale));
 
-        // 3. rotation: add random rotation around a (semi)randomly picked rotation axis vector
+        // 3. 旋转：绕着一个（半）随机选择的旋转轴向量进行随机的旋转
         float rotAngle = (rand() % 360);
         model = glm::rotate(model, rotAngle, glm::vec3(0.4f, 0.6f, 0.8f));
 
-        // 4. now add to list of matrices
+        // 4. 添加到矩阵的数组中
         modelMatrices[i] = model;
     }
 
 	// configure instanced array
-	// -------------------------
+	//顶点属性最大允许的数据大小等于一个vec4。因为一个mat4本质上是4个vec4，我们需要为这个矩阵预留4个顶点属性。
+	//因为我们将它的位置值设置为3，矩阵每一列的顶点属性位置值就是3、4、5和6。
 	unsigned int buffer;
 	glGenBuffers(1, &buffer);
 	glBindBuffer(GL_ARRAY_BUFFER, buffer);
 	glBufferData(GL_ARRAY_BUFFER, amount * sizeof(glm::mat4), &modelMatrices[0], GL_STATIC_DRAW);
 
-	// set transformation matrices as an instance vertex attribute (with divisor 1)
-	// note: we're cheating a little by taking the, now publicly declared, VAO of the model's mesh(es) and adding new vertexAttribPointers
-	// normally you'd want to do this in a more organized fashion, but for learning purposes this will do.
-	// -----------------------------------------------------------------------------------------------------------------------------------
 	for (unsigned int i = 0; i < rock.meshes.size(); i++)
 	{
 		unsigned int VAO = rock.meshes[i].VAO;
@@ -172,21 +169,21 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// configure transformation matrices
-		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 1000.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 500.0f);
 		glm::mat4 view = camera.GetViewMatrix();
 		asteroidShader.use();
 		asteroidShader.setMat4("projection", projection);
 		asteroidShader.setMat4("view", view);
-		//planetShader.use();
-		//planetShader.setMat4("projection", projection);
-		//planetShader.setMat4("view", view);
+		planetShader.use();
+		planetShader.setMat4("projection", projection);
+		planetShader.setMat4("view", view);
 
-		//// draw planet
-		//glm::mat4 model = glm::mat4(1.0f);
-		//model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
-		//model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
-		//planetShader.setMat4("model", model);
-		//planet.Draw(planetShader);
+		// draw planet
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, -3.0f, 0.0f));
+		model = glm::scale(model, glm::vec3(4.0f, 4.0f, 4.0f));
+		planetShader.setMat4("model", model);
+		planet.Draw(planetShader);
 
 		// draw meteorites
 		asteroidShader.use();

@@ -103,12 +103,12 @@ int main()
 	float quadVertices[] = {
 		// positions     // colors
 		-0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
-		0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
+		0.05f, -0.05f,   0.0f, 1.0f, 0.0f,
 		-0.05f, -0.05f,  0.0f, 0.0f, 1.0f,
 
 		-0.05f,  0.05f,  1.0f, 0.0f, 0.0f,
-		0.05f, -0.05f,  0.0f, 1.0f, 0.0f,
-		0.05f,  0.05f,  0.0f, 1.0f, 1.0f
+		0.05f, -0.05f,   0.0f, 1.0f, 0.0f,
+		0.05f,  0.05f,   0.0f, 1.0f, 1.0f
 	};
 	unsigned int quadVAO, quadVBO;
 	glGenVertexArrays(1, &quadVAO);
@@ -125,10 +125,10 @@ int main()
 	glBindBuffer(GL_ARRAY_BUFFER, instanceVBO); // this attribute comes from a different vertex buffer
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), (void*)0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	// tell OpenGL this is an instanced vertex attribute.
-	//void glVertexAttribDivisor( GLenum index, GLuint divisor )
-	//index相应于着色器中输入变量的location，divisor表示顶点属性的更新频率，每隔多少个实例将又一次设置实例的该属性，
-	//比如设置为1，那么每一个实例的属性都不一样，设置为2则每两个实例同样，3则每三个实例改变属性。
+	//glVertexAttribDivisor函数告诉了OpenGL什么时候将哪个属性更新成下一个元素。
+	//第一个参数index表明要更新的是哪个顶点属性，相应于着色器中输入变量的location，
+	//第二个参数divisor属性除数(Attribute Divisor)表示顶点属性的更新频率，
+	//如果将这个参数设置成0，表示每个顶点都更新，设置成1表示每1个实例更新一次，设置为2则每两个实例更新一次
 	glVertexAttribDivisor(2, 1);
 
 

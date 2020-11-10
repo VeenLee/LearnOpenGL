@@ -25,6 +25,8 @@
     <ClInclude Include="shader_s.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="planet.fs" />
+    <None Include="planet.vs" />
     <None Include="shader.fs" />
     <None Include="shader.vs" />
   </ItemGroup>
