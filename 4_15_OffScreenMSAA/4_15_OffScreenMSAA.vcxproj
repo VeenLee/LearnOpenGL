@@ -25,6 +25,8 @@
     <ClInclude Include="shader_s.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="aa_post.fs" />
+    <None Include="aa_post.vs" />
     <None Include="shader.fs" />
     <None Include="shader.vs" />
   </ItemGroup>

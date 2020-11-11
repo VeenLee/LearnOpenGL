@@ -225,7 +225,7 @@ int main()
 	//glFrameBufferTexture2D有以下的参数：
 	//target：帧缓冲的目标（GL_DRAW_FRAMEBUFFER绘制、GL_READ_FRAMEBUFFER读取或者GL_FRAMEBUFFER两者皆有）
 	//attachment：想要附加的附件类型。当前我们正在附加一个颜色附件。注意最后的0意味着我们可以附加多个颜色附件。
-	//textarget：纹理目标类型，GL_TEXTURE_2D, GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, or GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+	//textarget：纹理目标类型
 	//texture：要附加的纹理对象
 	//level：多级渐远纹理mipmap的级别
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureColorbuffer, 0);
