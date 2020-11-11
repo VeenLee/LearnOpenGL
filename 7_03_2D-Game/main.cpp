@@ -6,12 +6,13 @@
 ** Creative Commons, either version 4 of the License, or (at your
 ** option) any later version.
 ******************************************************************/
-#define GLEW_STATIC
-#include <GL/glew.h>
+
+#include "glad/glad.h"
 #include <GLFW/glfw3.h>
 
 #include "game.h"
 #include "resource_manager.h"
+#include <iostream>
 
 
 // GLFW function declerations
@@ -35,8 +36,16 @@ int main(int argc, char *argv[])
 	GLFWwindow* window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "Breakout", nullptr, nullptr);
 	glfwMakeContextCurrent(window);
 
-	glewExperimental = GL_TRUE;
-	glewInit();
+	//glewExperimental = GL_TRUE;
+	//glewInit();
+	// glad: load all OpenGL function pointers
+	// ---------------------------------------
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+	{
+		std::cout << "Failed to initialize GLAD" << std::endl;
+		return -1;
+	}
+
 	glGetError(); // Call it once to catch glewInit() bug, all other errors are now from our application.
 
 	glfwSetKeyCallback(window, key_callback);

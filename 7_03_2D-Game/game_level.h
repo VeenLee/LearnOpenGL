@@ -11,7 +11,7 @@
 #define GAMELEVEL_H
 #include <vector>
 
-#include <GL/glew.h>
+#include "glad/glad.h"
 #include <glm/glm.hpp>
 
 #include "game_object.h"

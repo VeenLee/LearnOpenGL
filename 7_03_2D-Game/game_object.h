@@ -10,7 +10,7 @@
 #ifndef GAMEOBJECT_H
 #define GAMEOBJECT_H
 
-#include <GL/glew.h>
+#include "glad/glad.h"
 #include <glm/glm.hpp>
 
 #include "texture.h"
