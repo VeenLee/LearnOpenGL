@@ -23,10 +23,18 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="light.fs" />
-    <None Include="light.vs" />
-    <None Include="shader.fs" />
-    <None Include="shader.vs" />
+    <None Include="light.fs">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="light.vs">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="shader.fs">
+      <Filter>源文件</Filter>
+    </None>
+    <None Include="shader.vs">
+      <Filter>源文件</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

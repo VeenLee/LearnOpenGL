@@ -16,34 +16,40 @@ uniform vec3 viewPos;
 
 float ShadowCalculation(vec4 fragPosLightSpace)
 {
-    // perform perspective divide
+    //通过传递过来的光源空间位置坐标，与深度图中的信息进行比较，如果大于深度图中的信息，表示该点被遮住，需要显示阴影。
+
+    //执行透视除法
+    //首先要明确一点，我们通过gl_Position传递过来的数据，OpenGL已经自动进行过perspective divide处理，就是将裁剪空间坐标[-w,w]变换成[-1,1]。方式就是将x，y，z分量都除以w分量。但是我们手动传过来的FragPosLightSpace没有自动计算过，所以我们要先进行这一步计算
     vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    // Transform to [0,1] range
+    //转换到[0,1]范围
     projCoords = projCoords * 0.5 + 0.5;
-    // Get closest depth value from light's perspective (using [0,1] range fragPosLight as coords)
-    float closestDepth = texture(shadowMap, projCoords.xy).r; 
-    // Get depth of current fragment from light's perspective
+    //从阴影图中采集当前位置在光的透视视角下的深度信息
+    float closestDepth = texture(shadowMap, projCoords.xy).r;
+    //获取当前片元在光的透视视角下的深度信息
     float currentDepth = projCoords.z;
-    // Calculate bias (based on depth map resolution and slope)
+    //根据表面朝向光线的角度计算阴影偏移（shadow bias）的偏移量，修复阴影失真(Shadow Acne)
     vec3 normal = normalize(fs_in.Normal);
     vec3 lightDir = normalize(lightPos - fs_in.FragPos);
+    //shadow bias该是多少合适呢？这就取决于经验了。或许下面这行代码可以解决大部分的问题：
     float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-    // Check whether current frag pos is in shadow
-    // float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0;
-    // PCF
+    //比较当前的深度和shadowMap中的深度值大小，如果当前深度较大，则表示处在阴影中
+    //float shadow = currentDepth > closestDepth ? 1.0 : 0.0; //若无偏移量，则会出现条纹状的痕迹
+    //float shadow = currentDepth - bias > closestDepth  ? 1.0 : 0.0; //使用了偏移量后，所有采样点都获得了比表面深度更小的深度值，整个表面就正确地被照亮
+
+    //百分比渐进过滤（PCF，percentage-closer filtering），修复阴影的锯齿状边缘，具体的操作是对相邻的8个片元也进行采样，将这些值加起来之后除以9来决定当前片元的阴影值
     float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
     for(int x = -1; x <= 1; ++x)
     {
         for(int y = -1; y <= 1; ++y)
         {
-            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r; 
-            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
-        }    
+            float pcfDepth = texture(shadowMap, projCoords.xy + vec2(x, y) * texelSize).r;
+            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;
+        }
     }
     shadow /= 9.0;
     
-    // Keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
+    //Keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
     if(projCoords.z > 1.0)
         shadow = 0.0;
         
@@ -72,5 +78,6 @@ void main()
     float shadow = ShadowCalculation(fs_in.FragPosLightSpace);                      
     vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
     
+    //FragColor = vec4(vec3(shadow), 1.0);
     FragColor = vec4(lighting, 1.0);
 }

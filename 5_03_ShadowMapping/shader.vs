@@ -22,6 +22,8 @@ void main()
     vs_out.FragPos = vec3(model * vec4(aPos, 1.0));
     vs_out.Normal = transpose(inverse(mat3(model))) * aNormal;
     vs_out.TexCoords = aTexCoords;
+    //顶点变换到光源空间并做透视变换后的坐标数据
     vs_out.FragPosLightSpace = lightSpaceMatrix * vec4(vs_out.FragPos, 1.0);
+
     gl_Position = projection * view * model * vec4(aPos, 1.0);
 }

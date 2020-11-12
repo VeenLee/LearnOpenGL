@@ -120,9 +120,14 @@ int main()
     // -------------
     unsigned int woodTexture = loadTexture("wood.png");
 
+    //阴影映射由两个步骤组成：
+    //1.使用一个来自光源的视图和投影矩阵来渲染场景，生成一个深度贴图
+    //2.将视图中各顶点三维位置转变到光源的可见坐标空间，使用上一步生成的深度贴图与当前坐标点的深度值来计算片段是否在阴影之中
+
     // configure depth map FBO
     // -----------------------
-    const unsigned int SHADOW_WIDTH = SCR_WIDTH, SHADOW_HEIGHT = SCR_HEIGHT;
+    //Shadow图的宽高和我们窗口的宽高值不一样。因为我们要为整个大场景保存深度信息，不单单只是一个窗口的大小。
+    const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
     unsigned int depthMapFBO;
     glGenFramebuffers(1, &depthMapFBO);
     // create depth texture
@@ -139,8 +144,8 @@ int main()
     // attach depth texture as FBO's depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	//我们需要的只是在从光的透视图下渲染场景的时候深度信息，所以颜色缓冲没有用。
-	//然而，不包含颜色缓冲的帧缓冲对象是不完整的，所以我们需要显式告诉OpenGL我们不适用任何颜色数据进行渲染。
+	//我们需要的只是在从光的透视图下渲染场景的时候的深度信息，所以颜色缓冲没有用。
+	//然而，不包含颜色缓冲的帧缓冲对象是不完整的，所以我们需要显式告诉OpenGL我们不使用任何颜色缓冲进行渲染。
 	//我们通过将调用glDrawBuffer和glReadBuffer把读和绘制缓冲设置为GL_NONE来做这件事。
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
@@ -178,32 +183,27 @@ int main()
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // 1. render depth of scene to texture (from light's perspective)
-        // --------------------------------------------------------------
+        //1.生成深度贴图(使用光源的视图和投影矩阵)
         glm::mat4 lightProjection, lightView;
         glm::mat4 lightSpaceMatrix;
         float near_plane = 1.0f, far_plane = 7.5f;
+        //因为我们使用的是一个所有光线都平行的定向光。出于这个原因，我们将为光源使用正交投影矩阵，透视图将没有任何变形，
+        //投影矩阵会直接决定哪些物体的深度信息会被记录，哪些不会被记录，从而决定了哪些物体或片元能显示阴影。所以我们要谨慎的选择一个近裁剪面和远裁剪面。
         lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
         lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
         lightSpaceMatrix = lightProjection * lightView;
-        // render scene from light's point of view
         simpleDepthShader.use();
         simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-
+        //需要改变视口（viewport）的参数以适应阴影贴图的尺寸，因为阴影贴图经常和我们原来渲染的场景（通常是窗口分辨率）有着不同的分辨率，
+        //否则最后的深度贴图要么太小要么就不完整。
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
         glClear(GL_DEPTH_BUFFER_BIT);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, woodTexture);
         renderScene(simpleDepthShader);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        // reset viewport
-        glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // 2. render scene as normal using the generated depth/shadow map  
-        // --------------------------------------------------------------
+        //2.渲染场景和阴影
+        //对于每一个顶点，首先要将它变换到光源空间中计算其深度信息，然后要变换到观察空间中计算其真正渲染时的位置
         glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shader.use();
@@ -221,13 +221,14 @@ int main()
         glBindTexture(GL_TEXTURE_2D, depthMap);
         renderScene(shader);
 
-        // render Depth map to quad for visual debugging
-        // ---------------------------------------------
-        debugDepthQuad.use();
-        debugDepthQuad.setFloat("near_plane", near_plane);
-        debugDepthQuad.setFloat("far_plane", far_plane);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, depthMap);
+        //将深度贴图渲染出来以方便调试
+        //glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //debugDepthQuad.use();
+        //debugDepthQuad.setFloat("near_plane", near_plane);
+        //debugDepthQuad.setFloat("far_plane", far_plane);
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_2D, depthMap);
         //renderQuad();
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
