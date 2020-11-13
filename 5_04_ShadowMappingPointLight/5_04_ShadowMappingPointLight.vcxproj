@@ -27,6 +27,9 @@
   <ItemGroup>
     <None Include="shader.fs" />
     <None Include="shader.vs" />
+    <None Include="shadow_mapping_depth.fs" />
+    <None Include="shadow_mapping_depth.gs" />
+    <None Include="shadow_mapping_depth.vs" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\libs\glad.c">
