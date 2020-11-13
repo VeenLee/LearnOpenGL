@@ -30,6 +30,7 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     //根据表面朝向光线的角度计算阴影偏移（shadow bias）的偏移量，修复阴影失真(Shadow Acne)
     vec3 normal = normalize(fs_in.Normal);
     vec3 lightDir = normalize(lightPos - fs_in.FragPos);
+    //如果偏移量过大,会导致物体似乎与阴影有些脱离，这种现象被称为Peter Panning，因为物体看起来轻轻悬浮在表面之上。
     //shadow bias该是多少合适呢？这就取决于经验了。或许下面这行代码可以解决大部分的问题：
     float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
     //比较当前的深度和shadowMap中的深度值大小，如果当前深度较大，则表示处在阴影中
@@ -49,10 +50,16 @@ float ShadowCalculation(vec4 fragPosLightSpace)
     }
     shadow /= 9.0;
     
-    //Keep the shadow at 0.0 when outside the far_plane region of the light's frustum.
-    if(projCoords.z > 1.0)
+    //当一个点比光的远平面far_plane还要远时，它的投影坐标的z坐标大于1.0，只要投影向量的z坐标大于1.0，我们就把shadow的值强制设为0.0
+    if (projCoords.z > 1.0) {
         shadow = 0.0;
-        
+    }
+
+    //将不在光源空间投影范围内的坐标全放到阴影内,仅调试用
+    //if (projCoords.x < 0.0 || projCoords.y < 0.0 || projCoords.x > 1.0 || projCoords.y > 1.0) {
+    //    shadow = 1.0;
+    //}
+
     return shadow;
 }
 
