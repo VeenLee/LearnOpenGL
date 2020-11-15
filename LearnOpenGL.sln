@@ -113,6 +113,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "8_03_ColorBlend", "8_03_Col
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "4_15_OffScreenMSAA", "4_15_OffScreenMSAA\4_15_OffScreenMSAA.vcxproj", "{D69C5D4E-3B6F-4AC6-9C63-BA870249354C}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "5_08_DeferredShading", "5_08_DeferredShading\5_08_DeferredShading.vcxproj", "{02E36457-2693-4F96-9AAE-07B681079239}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "5_09_DeferredShadingVolumes", "5_09_DeferredShadingVolumes\5_09_DeferredShadingVolumes.vcxproj", "{E337979B-8C21-4FCE-96BF-6064A26633C5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -339,6 +343,14 @@ Global
 		{D69C5D4E-3B6F-4AC6-9C63-BA870249354C}.Debug|x86.Build.0 = Debug|Win32
 		{D69C5D4E-3B6F-4AC6-9C63-BA870249354C}.Release|x86.ActiveCfg = Release|Win32
 		{D69C5D4E-3B6F-4AC6-9C63-BA870249354C}.Release|x86.Build.0 = Release|Win32
+		{02E36457-2693-4F96-9AAE-07B681079239}.Debug|x86.ActiveCfg = Debug|Win32
+		{02E36457-2693-4F96-9AAE-07B681079239}.Debug|x86.Build.0 = Debug|Win32
+		{02E36457-2693-4F96-9AAE-07B681079239}.Release|x86.ActiveCfg = Release|Win32
+		{02E36457-2693-4F96-9AAE-07B681079239}.Release|x86.Build.0 = Release|Win32
+		{E337979B-8C21-4FCE-96BF-6064A26633C5}.Debug|x86.ActiveCfg = Debug|Win32
+		{E337979B-8C21-4FCE-96BF-6064A26633C5}.Debug|x86.Build.0 = Debug|Win32
+		{E337979B-8C21-4FCE-96BF-6064A26633C5}.Release|x86.ActiveCfg = Release|Win32
+		{E337979B-8C21-4FCE-96BF-6064A26633C5}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

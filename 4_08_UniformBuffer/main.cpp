@@ -142,6 +142,9 @@ int main()
 	//使用uniform块，我们需要将需要共享的uniform块绑定到OpenGL的相同绑定点，然后用OpenGL的GL_UNIFORM_BUFFER绑定到一致的位置，
 	//通过操作uniform缓存对象来设置着色器中uniform块中的变量值。节省了对每个着色器都设置一遍的累赘操作。
 
+	//https://developer.aliyun.com/article/212874
+	//https://www.cnblogs.com/dongguolei/p/11495301.html
+
 	// configure a uniform buffer object
 	// ---------------------------------
 	//1.通过glGetUniformBlockIndex获取Uniform块索引(Uniform Block Index)
