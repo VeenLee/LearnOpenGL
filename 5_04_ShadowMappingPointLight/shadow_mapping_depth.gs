@@ -8,6 +8,7 @@ out vec4 FragPos; // FragPos from GS (output per emitvertex)
 
 void main()
 {
+    //计算每个顶点在6个光空间中投影后的新坐标
     for(int face = 0; face < 6; ++face)
     {
         //gl_Layer为几何着色器内建变量，它指定Emit发出的基本图形会被送到立方体贴图的哪个面，
@@ -17,10 +18,11 @@ void main()
         for(int i = 0; i < 3; ++i) // for each triangle's vertices
         {
             FragPos = gl_in[i].gl_Position;
-            //把面的光空间变换矩阵乘以FragPos，将每个世界空间顶点变换到相关的光空间，生成每个三角形
+            //用面的光空间变换矩阵乘以FragPos，将每个顶点从世界空间变换到相关的光空间，输出在当前光空间投影后的新坐标
             gl_Position = shadowMatrices[face] * FragPos;
             EmitVertex();
-        }    
+        }
+		//输出新三角形
         EndPrimitive();
     }
-} 
+}

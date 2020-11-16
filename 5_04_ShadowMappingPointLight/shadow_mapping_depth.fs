@@ -8,9 +8,8 @@ void main()
 {
     float lightDistance = length(FragPos.xyz - lightPos);
     
-    // map to [0;1] range by dividing by far_plane
+    //把fragment和光源之间的距离，映射到0到1的范围，把它写入为fragment的深度值。(线性距离)
     lightDistance = lightDistance / far_plane;
     
-    // write this as modified depth
     gl_FragDepth = lightDistance;
 }

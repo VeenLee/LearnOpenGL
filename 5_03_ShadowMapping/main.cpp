@@ -290,6 +290,7 @@ void renderCube()
     if (cubeVAO == 0)
     {
         float vertices[] = {
+			// positions          // normals          // texcoords
             // back face
             -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
              1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
