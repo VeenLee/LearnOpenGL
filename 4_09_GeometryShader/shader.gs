@@ -1,3 +1,13 @@
+//几何着色器提供以下内置输入变量：
+//in gl_PerVertex 
+//{ 
+//  vec4 gl_Position; 
+//  float gl_PointSize; 
+//  float gl_ClipDistance []; 
+//} gl_in [];
+//要注意的是，它被声明为一个数组，因为大多数的渲染图元包含多于1个的顶点，而几何着色器的输入是一个图元的所有顶点。
+
+
 //一个传递(Pass-through)几何着色器，它会接收一个点图元，并直接将它传递(Pass)到下一个着色器
 //#version 330 core
 //layout (points) in;

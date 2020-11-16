@@ -97,18 +97,23 @@ int main()
 	const unsigned int SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 	unsigned int depthMapFBO;
 	glGenFramebuffers(1, &depthMapFBO);
+
+	//为创建一个光周围的深度值的立方体贴图，我们必须渲染场景6次：每次一个面。这会很耗费性能因为一个深度贴图下需要进行很多渲染调用。
+	//这个教程中我们将转而使用另外的一个小技巧来做这件事，几何着色器允许我们使用一次渲染过程来建立深度立方体贴图，它允许我们把所有面在一个过程渲染
 	// create depth cubemap texture
 	unsigned int depthCubemap;
 	glGenTextures(1, &depthCubemap);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
-	for (unsigned int i = 0; i < 6; ++i)
+	for (unsigned int i = 0; i < 6; ++i) {
+		//生成立方体贴图的每个面，将它们作为2D深度值纹理图像：
 		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	}
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	// attach depth texture as FBO's depth buffer
+	//把立方体贴图附加成帧缓冲的深度附件
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
 	glDrawBuffer(GL_NONE);
@@ -153,11 +158,12 @@ int main()
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		// 0. create depth cubemap transformation matrices
-		// -----------------------------------------------
+		// 0.创建光空间变换矩阵
 		float near_plane = 1.0f;
 		float far_plane = 25.0f;
+		//视野参数设为90度才能保证视野足够大到可以合适地填满立方体贴图的一个面，这样立方体贴图的所有面都能与其他面在边缘对齐
 		glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT, near_plane, far_plane);
+		//用glm::lookAt创建6个观察方向，按顺序注视着立方体贴图的的一个方向：右、左、上、下、近、远
 		std::vector<glm::mat4> shadowTransforms;
 		shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
 		shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
@@ -166,21 +172,20 @@ int main()
 		shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
 		shadowTransforms.push_back(shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, -1.0f, 0.0f)));
 
-		// 1. render scene to depth cubemap
-		// --------------------------------
+		// 1.生成深度立方体贴图
 		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		simpleDepthShader.use();
-		for (unsigned int i = 0; i < 6; ++i)
+		for (unsigned int i = 0; i < 6; ++i) {
 			simpleDepthShader.setMat4("shadowMatrices[" + std::to_string(i) + "]", shadowTransforms[i]);
+		}
 		simpleDepthShader.setFloat("far_plane", far_plane);
 		simpleDepthShader.setVec3("lightPos", lightPos);
 		renderScene(simpleDepthShader);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		// 2. render scene as normal 
-		// -------------------------
+		// 2.渲染场景，使用深度贴图创建阴影
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		shader.use();
