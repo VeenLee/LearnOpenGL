@@ -17,7 +17,7 @@ uniform vec3 viewPos;
 
 void main()
 {           
-     // obtain normal from normal map in range [0,1]
+    // obtain normal from normal map in range [0,1]
     vec3 normal = texture(normalMap, fs_in.TexCoords).rgb;
     // transform normal vector to range [-1,1]
     normal = normalize(normal * 2.0 - 1.0);  // this normal is in tangent space

@@ -31,6 +31,7 @@ void main()
     T = normalize(T - dot(T, N) * N);
     vec3 B = cross(N, T);
     
+    //创建一个TBN矩阵
     mat3 TBN = transpose(mat3(T, B, N));    
     vs_out.TangentLightPos = TBN * lightPos;
     vs_out.TangentViewPos  = TBN * viewPos;

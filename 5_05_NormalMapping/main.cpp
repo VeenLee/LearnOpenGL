@@ -79,6 +79,26 @@ int main()
     glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
 
+
+	//生成法线贴图的坐标系称作TBN坐标系，坐标系的三个轴是t轴，b轴和n轴，对应我们熟悉的x轴，y轴和z轴。每个顶点有一个TBN坐标系。
+	//TBN矩阵三个字母分别代表切线轴tangent、副切线轴bitangent和图元三角形表面法向量normal。
+	//我们可以为任何类型的表面计算出一个TBN矩阵：把切线空间的z方向和图元法线方向对齐。
+
+	//在切线空间中，法向量都偏向+z轴（0, 0, 1），它的z坐标值在[0,1]范围内。
+	//通常采用的是和表面纹理坐标一致的轴作为T轴和B轴，即U轴对应T轴，V轴对应B轴，
+	//我们用三角形的顶点和纹理坐标（因为纹理坐标和切线向量在同一空间中）计算出切线和副切线，从而求得TBN矩阵。每个顶点最终会计算出一个TBN矩阵。
+
+	//实现方法有两种：
+	//其一、将法线通过TBN矩阵变换后，在世界坐标空间中计算光照效果。
+	//其二、将光源、视点、片元的位置经过TBN矩阵的逆矩阵变换后，在TBN空间中计算光照效果。
+
+	//https://learnopengl-cn.github.io/05%20Advanced%20Lighting/04%20Normal%20Mapping/
+
+	//可以用下面的公式，通过三角形的两条边以及纹理坐标计算出切线向量T和副切线B
+	//[Tx  Ty  Tz] = 1 / (ΔU1*ΔV2 − ΔU2*ΔV1) * [ ΔV2	−ΔV1] * [	E1x  E1y  E1z ]
+	// Bx  By  Bz									−ΔU2	 ΔU1		E2x  E2y  E2z
+
+
     // build and compile shaders
     // -------------------------
     Shader shader("shader.vs", "shader.fs");
@@ -184,11 +204,10 @@ void renderQuad()
 		// normal vector
 		glm::vec3 nm(0.0f, 0.0f, 1.0f);
 
-		// calculate tangent/bitangent vectors of both triangles
+		//计算两个三角形的T和B向量
 		glm::vec3 tangent1, bitangent1;
 		glm::vec3 tangent2, bitangent2;
-		// triangle 1
-		// ----------
+		//计算第一个三角形的两条边和deltaUV坐标
 		glm::vec3 edge1 = pos2 - pos1;
 		glm::vec3 edge2 = pos3 - pos1;
 		glm::vec2 deltaUV1 = uv2 - uv1;
@@ -206,8 +225,7 @@ void renderQuad()
 		bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
 		bitangent1 = glm::normalize(bitangent1);
 
-		// triangle 2
-		// ----------
+		//计算第二个三角形的两条边和deltaUV坐标
 		edge1 = pos3 - pos1;
 		edge2 = pos4 - pos1;
 		deltaUV1 = uv3 - uv1;
@@ -220,13 +238,14 @@ void renderQuad()
 		tangent2.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
 		tangent2 = glm::normalize(tangent2);
 
-
 		bitangent2.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
 		bitangent2.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
 		bitangent2.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
 		bitangent2 = glm::normalize(bitangent2);
 
-
+		//因为一个三角形三个顶点在同一个平面，我们只需为每个三角形计算一个切线/副切线，它们对于三角形上的每个顶点都是一样的。
+		//要注意的是通常三角形和三角形之间都会共享顶点。这种情况下通常需要将共享顶点的法线和切线/副切线等顶点属性平均化，以获得更加柔和的效果。
+		//我们两个三角形之间共享了一些顶点，但是因为两个三角形恰好共面，因此并不需要将结果平均化。
 		float quadVertices[] = {
 			// positions            // normal         // texcoords  // tangent                          // bitangent
 			pos1.x, pos1.y, pos1.z, nm.x, nm.y, nm.z, uv1.x, uv1.y, tangent1.x, tangent1.y, tangent1.z, bitangent1.x, bitangent1.y, bitangent1.z,
