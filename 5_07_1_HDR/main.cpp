@@ -86,22 +86,24 @@ int main()
 
     // build and compile shaders
     // -------------------------
-	Shader shader("lighting.vs", "lighting.fs");
+	Shader shader("shader.vs", "shader.fs");
 	Shader hdrShader("hdr.vs", "hdr.fs");
 
 	// load textures
 	// -------------
 	unsigned int woodTexture = loadTexture("wood.png", true); // note that we're loading the texture as an SRGB texture
 
+	//要使用HDR非常简单，只需要将帧缓存的颜色缓存格式设置成16或者32位浮点数就行，GL_RGB16F, GL_RGBA16F, GL_RGB32F或者GL_RGBA32F
+	//这样，当渲染场景到帧缓存时，OpenGL就不会把颜色值截断到1.0，也就保留了场景的HDR信息。
+
 	// configure floating point framebuffer
-	// ------------------------------------
 	unsigned int hdrFBO;
 	glGenFramebuffers(1, &hdrFBO);
 	// create floating point color buffer
 	unsigned int colorBuffer;
 	glGenTextures(1, &colorBuffer);
 	glBindTexture(GL_TEXTURE_2D, colorBuffer);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL); //告诉OpenGL纹理内部格式要16位浮点数，不要把它截断
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// create depth buffer (renderbuffer)
@@ -113,8 +115,9 @@ int main()
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorBuffer, 0);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
-	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 		std::cout << "Framebuffer not complete!" << std::endl;
+	}
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	// lighting info
