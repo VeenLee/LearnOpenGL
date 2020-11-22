@@ -80,6 +80,8 @@ int main()
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
+	
+	//视差贴图，本质上是一种位移贴图（Displacement Mapping）。它的原理是根据视线方向，对当前看到的像素位置进行一定的坐标偏移，显示偏移过后的像素颜色。这样，就能有产生这种凹凸落差很大的视觉效果。
 
     // build and compile shaders
     // -------------------------
