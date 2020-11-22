@@ -97,15 +97,15 @@ int main()
 	unsigned int containerTexture = loadTexture("container2.png", true); // note that we're loading the texture as an SRGB texture
 
 	// configure (floating point) framebuffers
-	// ---------------------------------------
 	unsigned int hdrFBO;
 	glGenFramebuffers(1, &hdrFBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
-	// create 2 floating point color buffers (1 for normal rendering, other for brightness threshold values)
+
+	//使用MRT（Multiple Render Targets，多渲染目标），指定多个像素着色器输出
+	//创建两个浮点颜色缓冲，一个渲染普通场景，一个渲染亮度 (1 for normal rendering, other for brightness threshold values)
 	unsigned int colorBuffers[2];
 	glGenTextures(2, colorBuffers);
-	for (unsigned int i = 0; i < 2; i++)
-	{
+	for (unsigned int i = 0; i < 2; i++) {
 		glBindTexture(GL_TEXTURE_2D, colorBuffers[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -115,15 +115,18 @@ int main()
 		// attach texture to framebuffer
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, colorBuffers[i], 0);
 	}
+
 	// create and attach depth buffer (renderbuffer)
 	unsigned int rboDepth;
 	glGenRenderbuffers(1, &rboDepth);
 	glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
-	// tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
+
+	//需要显式告知OpenGL渲染到多个颜色缓冲，否则OpenGL只会渲染到帧缓冲的第一个颜色缓冲而忽略所有其他的颜色缓冲
 	unsigned int attachments[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 	glDrawBuffers(2, attachments);
+
 	// finally check if framebuffer is complete
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
 		std::cout << "Framebuffer not complete!" << std::endl;
@@ -166,7 +169,6 @@ int main()
 
 
 	// shader configuration
-	// --------------------
 	shader.use();
 	shader.setInt("diffuseTexture", 0);
 	shaderBlur.use();
@@ -195,7 +197,6 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		// 1. render scene into floating point framebuffer
-		// -----------------------------------------------
 		glBindFramebuffer(GL_FRAMEBUFFER, hdrFBO);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -207,8 +208,7 @@ int main()
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, woodTexture);
 		// set lighting uniforms
-		for (unsigned int i = 0; i < lightPositions.size(); i++)
-		{
+		for (unsigned int i = 0; i < lightPositions.size(); i++) {
 			shader.setVec3("lights[" + std::to_string(i) + "].Position", lightPositions[i]);
 			shader.setVec3("lights[" + std::to_string(i) + "].Color", lightColors[i]);
 		}
@@ -226,32 +226,27 @@ int main()
 		model = glm::scale(model, glm::vec3(0.5f));
 		shader.setMat4("model", model);
 		renderCube();
-
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(2.0f, 0.0f, 1.0));
 		model = glm::scale(model, glm::vec3(0.5f));
 		shader.setMat4("model", model);
 		renderCube();
-
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-1.0f, -1.0f, 2.0));
 		model = glm::rotate(model, glm::radians(60.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
 		shader.setMat4("model", model);
 		renderCube();
-
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, 2.7f, 4.0));
 		model = glm::rotate(model, glm::radians(23.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
 		model = glm::scale(model, glm::vec3(1.25));
 		shader.setMat4("model", model);
 		renderCube();
-
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-2.0f, 1.0f, -3.0));
 		model = glm::rotate(model, glm::radians(124.0f), glm::normalize(glm::vec3(1.0, 0.0, 1.0)));
 		shader.setMat4("model", model);
 		renderCube();
-
 		model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(-3.0f, 0.0f, 0.0));
 		model = glm::scale(model, glm::vec3(0.5f));
@@ -263,8 +258,7 @@ int main()
 		shaderLight.setMat4("projection", projection);
 		shaderLight.setMat4("view", view);
 
-		for (unsigned int i = 0; i < lightPositions.size(); i++)
-		{
+		for (unsigned int i = 0; i < lightPositions.size(); i++) {
 			model = glm::mat4(1.0f);
 			model = glm::translate(model, glm::vec3(lightPositions[i]));
 			model = glm::scale(model, glm::vec3(0.25f));

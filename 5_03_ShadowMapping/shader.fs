@@ -39,7 +39,7 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 
     //百分比渐进过滤（PCF，percentage-closer filtering），修复阴影的锯齿状边缘，具体的操作是对相邻的8个片元也进行采样，将这些值加起来之后除以9来决定当前片元的阴影值
     float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+    vec2 texelSize = 1.0 / textureSize(shadowMap, 0); //由于纹理坐标范围是0.0到1.0，可以计算移动一个像素对应的距离
     for(int x = -1; x <= 1; ++x)
     {
         for(int y = -1; y <= 1; ++y)
