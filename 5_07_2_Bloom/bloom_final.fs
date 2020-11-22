@@ -13,6 +13,7 @@ void main()
     const float gamma = 2.2;
     vec3 hdrColor = texture(scene, TexCoords).rgb;
     vec3 bloomColor = texture(bloomBlur, TexCoords).rgb;
+    //要在应用色调映射之前添加泛光效果，这样添加的亮区泛光也会柔和转换为LDR，光照效果相对会更好
     if(bloom)
         hdrColor += bloomColor; // additive blending
     // tone mapping

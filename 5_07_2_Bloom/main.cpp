@@ -273,14 +273,14 @@ int main()
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		// 2. blur bright fragments with two-pass Gaussian Blur(两步高斯模糊)
+		// 2. blur bright fragments with two-pass Gaussian Blur(两步高斯模糊)，模糊处理5次(需重复10次，5次垂直5次水平)
 		bool horizontal = true, first_iteration = true;
 		unsigned int amount = 10;
 		shaderBlur.use();
 		for (unsigned int i = 0; i < amount; i++) {
 			glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
 			shaderBlur.setInt("horizontal", horizontal);
-			glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongColorbuffers[!horizontal]); //在第一次迭代的时候绑定正常场景图进行首次渲染，在之后的迭代中用的都是上一次完成高斯模糊渲染之后的图。
+			glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongColorbuffers[!horizontal]); //在第一次迭代的时候绑定原始场景图得到第一张高斯模糊图，在之后的迭代中用的都是上一次完成高斯模糊渲染之后的图。
 			renderQuad();
 			horizontal = !horizontal;
 			if (first_iteration)

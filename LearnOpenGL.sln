@@ -121,6 +121,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "5_07_1_HDR", "5_07_1_HDR\5_
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "5_07_2_Bloom", "5_07_2_Bloom\5_07_2_Bloom.vcxproj", "{24246E7C-3C5B-40A0-97EF-E1CF65EFD947}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "5_10_SSAO", "5_10_SSAO\5_10_SSAO.vcxproj", "{BF670968-8D12-47F6-A73B-70BDEF89A010}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -363,6 +365,10 @@ Global
 		{24246E7C-3C5B-40A0-97EF-E1CF65EFD947}.Debug|x86.Build.0 = Debug|Win32
 		{24246E7C-3C5B-40A0-97EF-E1CF65EFD947}.Release|x86.ActiveCfg = Release|Win32
 		{24246E7C-3C5B-40A0-97EF-E1CF65EFD947}.Release|x86.Build.0 = Release|Win32
+		{BF670968-8D12-47F6-A73B-70BDEF89A010}.Debug|x86.ActiveCfg = Debug|Win32
+		{BF670968-8D12-47F6-A73B-70BDEF89A010}.Debug|x86.Build.0 = Debug|Win32
+		{BF670968-8D12-47F6-A73B-70BDEF89A010}.Release|x86.ActiveCfg = Release|Win32
+		{BF670968-8D12-47F6-A73B-70BDEF89A010}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
