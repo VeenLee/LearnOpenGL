@@ -132,13 +132,16 @@ int main()
 		std::cout << "Framebuffer not complete!" << std::endl;
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	// ping-pong-framebuffer for blurring
+	//要实现高斯模糊过滤我们需要一个二维四方形作为权重，从这个二维高斯曲线方程中去获取它。然而这个过程有个问题，就是很快会消耗极大的性能。以一个32×32的模糊kernel为例，我们必须对每个fragment从一个纹理中采样1024次！
+    //幸运的是，高斯方程有个非常巧妙的特性，它允许我们把二维方程分解为两个更小的方程：一个描述水平权重，另一个描述垂直权重。我们首先用水平权重在整个纹理上进行水平模糊，然后在经改变的纹理上进行垂直模糊。利用这个特性，结果是一样的，但是可以节省难以置信的性能，因为我们现在只需做32 + 32次采样，不再是1024了！这叫做两步高斯模糊。
+
+	//通过乒乓帧缓存来实现两步高斯模糊
+	//它的意思是：有一对儿帧缓冲，我们把另一个帧缓冲的颜色缓冲放进当前的帧缓冲的颜色缓冲中，使用不同的着色效果渲染指定的次数。基本上就是不断地切换帧缓冲和纹理去绘制。这样我们先在场景纹理的第一个缓冲中进行模糊，然后在把第一个帧缓冲的颜色缓冲放进第二个帧缓冲进行模糊，接着，将第二个帧缓冲的颜色缓冲放进第一个，循环往复。
 	unsigned int pingpongFBO[2];
 	unsigned int pingpongColorbuffers[2];
 	glGenFramebuffers(2, pingpongFBO);
 	glGenTextures(2, pingpongColorbuffers);
-	for (unsigned int i = 0; i < 2; i++)
-	{
+	for (unsigned int i = 0; i < 2; i++) {
 		glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[i]);
 		glBindTexture(GL_TEXTURE_2D, pingpongColorbuffers[i]);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
@@ -148,8 +151,10 @@ int main()
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, pingpongColorbuffers[i], 0);
 		// also check if framebuffers are complete (no need for depth buffer)
-		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
 			std::cout << "Framebuffer not complete!" << std::endl;
+			return -1;
+		}
 	}
 
 	// lighting info
@@ -268,16 +273,14 @@ int main()
 		}
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		// 2. blur bright fragments with two-pass Gaussian Blur 双通道高斯模糊
-		// --------------------------------------------------
+		// 2. blur bright fragments with two-pass Gaussian Blur(两步高斯模糊)
 		bool horizontal = true, first_iteration = true;
 		unsigned int amount = 10;
 		shaderBlur.use();
-		for (unsigned int i = 0; i < amount; i++)
-		{
+		for (unsigned int i = 0; i < amount; i++) {
 			glBindFramebuffer(GL_FRAMEBUFFER, pingpongFBO[horizontal]);
 			shaderBlur.setInt("horizontal", horizontal);
-			glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongColorbuffers[!horizontal]);  // bind texture of other framebuffer (or scene if first iteration)
+			glBindTexture(GL_TEXTURE_2D, first_iteration ? colorBuffers[1] : pingpongColorbuffers[!horizontal]); //在第一次迭代的时候绑定正常场景图进行首次渲染，在之后的迭代中用的都是上一次完成高斯模糊渲染之后的图。
 			renderQuad();
 			horizontal = !horizontal;
 			if (first_iteration)
@@ -286,7 +289,6 @@ int main()
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		// 3. now render floating point color buffer to 2D quad and tonemap HDR colors to default framebuffer's (clamped) color range
-		// --------------------------------------------------------------------------------------------------------------------------
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		shaderBloomFinal.use();
 		glActiveTexture(GL_TEXTURE0);

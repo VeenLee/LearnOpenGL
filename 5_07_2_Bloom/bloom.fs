@@ -31,18 +31,21 @@ void main()
         // diffuse
         vec3 lightDir = normalize(lights[i].Position - fs_in.FragPos);
         float diff = max(dot(lightDir, normal), 0.0);
-        vec3 result = lights[i].Color * diff * color;      
+        vec3 result = lights[i].Color * diff * color;
         // attenuation (use quadratic as we have gamma correction)
         float distance = length(fs_in.FragPos - lights[i].Position);
         result *= 1.0 / (distance * distance);
         lighting += result;
     }
     vec3 result = ambient + lighting;
-    // check whether result is higher than some threshold, if so, output as bloom threshold color
+    //检查颜色值是否高于某个阈值，如果高于就渲染到亮光颜色缓存中，即标记为发光区域（不仅仅是光源才超过，有些亮的部分也会超过）
     float brightness = dot(result, vec3(0.2126, 0.7152, 0.0722));
-    if(brightness > 1.0)
+    //这也说明了为什么泛光在HDR基础上能够运行得很好。因为HDR中，我们可以将颜色值指定超过1.0这个默认的范围，我们能够得到对一个图像中的亮度的更好的控制权。没有HDR我们必须将阈限设置为小于1.0的数，虽然可行，但是亮部很容易变得很多，这就导致光晕效果过重。
+    if(brightness > 1.0) {
         BrightColor = vec4(result, 1.0);
-    else
+    }
+    else {
         BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
+    }
     FragColor = vec4(result, 1.0);
 }
