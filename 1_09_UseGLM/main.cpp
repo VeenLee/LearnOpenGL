@@ -240,6 +240,12 @@ int main()
 	// or set it via the texture class
 	ourShader.setInt("texture2", 1);
 
+	//just for test
+	glm::vec3 v1(1.0f, 2.0f, 3.0f);
+	glm::vec3 v2(4.0f, 5.0f, 6.0f);
+	glm::vec3 v3(7.0f, 8.0f, 9.0f);
+	glm::mat3 mat3 = glm::mat3(v1, v2, v3);
+
 	while (!glfwWindowShouldClose(window))
 	{
 		// 输入

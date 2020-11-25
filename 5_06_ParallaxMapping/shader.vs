@@ -28,7 +28,7 @@ void main()
     vec3 T = normalize(mat3(model) * aTangent);
     vec3 B = normalize(mat3(model) * aBitangent);
     vec3 N = normalize(mat3(model) * aNormal);
-    mat3 TBN = transpose(mat3(T, B, N));
+    mat3 TBN = transpose(mat3(T, B, N));          //注意:OpenGL为列主序，T将会是第一列
 
     vs_out.TangentLightPos = TBN * lightPos;
     vs_out.TangentViewPos  = TBN * viewPos;

@@ -80,8 +80,15 @@ int main()
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
+
 	
 	//视差贴图，本质上是一种位移贴图（Displacement Mapping）。它的原理是根据视线方向，对当前看到的像素位置进行一定的坐标偏移，显示偏移过后的像素颜色。这样，就能有产生这种凹凸落差很大的视觉效果。
+
+	//视差贴图的另一个问题是，当表面被任意旋转以后很难指出从P¯获取哪一个坐标。我们在视差贴图中使用了另一个坐标空间，这个空间P¯向量的x和y元素总是与纹理表面对齐。
+	//将fragment到观察者的向量V¯转换到切线空间中，经变换的P¯向量的x和y元素将于表面的切线和副切线向量对齐。由于切线和副切线向量与表面纹理坐标的方向相同，我们可以用P¯的x和y元素作为纹理坐标的偏移量，这样就不用考虑表面的方向了。
+
+	//使用反色高度贴图（也叫深度贴图）去模拟深度比模拟高度更容易
+
 
     // build and compile shaders
     // -------------------------
@@ -193,20 +200,18 @@ void renderQuad()
 		// calculate tangent/bitangent vectors of both triangles
 		glm::vec3 tangent1, bitangent1;
 		glm::vec3 tangent2, bitangent2;
+
 		// triangle 1
 		// ----------
 		glm::vec3 edge1 = pos2 - pos1;
 		glm::vec3 edge2 = pos3 - pos1;
 		glm::vec2 deltaUV1 = uv2 - uv1;
 		glm::vec2 deltaUV2 = uv3 - uv1;
-
 		float f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-
 		tangent1.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
 		tangent1.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
 		tangent1.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
 		tangent1 = glm::normalize(tangent1);
-
 		bitangent1.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
 		bitangent1.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
 		bitangent1.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
@@ -218,20 +223,15 @@ void renderQuad()
 		edge2 = pos4 - pos1;
 		deltaUV1 = uv3 - uv1;
 		deltaUV2 = uv4 - uv1;
-
 		f = 1.0f / (deltaUV1.x * deltaUV2.y - deltaUV2.x * deltaUV1.y);
-
 		tangent2.x = f * (deltaUV2.y * edge1.x - deltaUV1.y * edge2.x);
 		tangent2.y = f * (deltaUV2.y * edge1.y - deltaUV1.y * edge2.y);
 		tangent2.z = f * (deltaUV2.y * edge1.z - deltaUV1.y * edge2.z);
 		tangent2 = glm::normalize(tangent2);
-
-
 		bitangent2.x = f * (-deltaUV2.x * edge1.x + deltaUV1.x * edge2.x);
 		bitangent2.y = f * (-deltaUV2.x * edge1.y + deltaUV1.x * edge2.y);
 		bitangent2.z = f * (-deltaUV2.x * edge1.z + deltaUV1.x * edge2.z);
 		bitangent2 = glm::normalize(bitangent2);
-
 
 		float quadVertices[] = {
 			// positions            // normal         // texcoords  // tangent                          // bitangent
