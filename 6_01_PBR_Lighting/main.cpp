@@ -83,6 +83,11 @@ int main()
     glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
 
+
+    //金属表面对光的反应与非金属材料（也被称为电介质(Dielectrics)材料）表面相比是不同的。它们遵从的反射与折射原理是相同的，但是金属表面所有的折射光都会被直接吸收而不会散开，只留下反射光或者说镜面反射光。亦即是说，金属表面不会显示出漫反射颜色。由于金属与电介质之间存在这样明显的区别，因此两者在PBR渲染管线中被区别处理。
+    //Lo(p,ωo)=∫Ωfr(p,ωi,ωo)Li(p,ωi)n⋅ωidωi
+
+
     // build and compile shaders
     // -------------------------
 	Shader pbrShader("pbr.vs", "pbr.fs");
