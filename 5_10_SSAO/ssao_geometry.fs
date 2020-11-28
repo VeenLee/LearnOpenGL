@@ -8,11 +8,11 @@ in vec3 FragPos;
 in vec3 Normal;
 
 void main()
-{    
+{
     // store the fragment position vector in the first gbuffer texture
     gPosition = FragPos;
     // also store the per-fragment normals into the gbuffer
     gNormal = normalize(Normal);
-    // and the diffuse per-fragment color
+    // and the diffuse per-fragment color，将纹理颜色填充为接近纯白色
     gAlbedo.rgb = vec3(0.95);
 }

@@ -28,7 +28,7 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 5.0f, 5.0f));
+Camera camera(glm::vec3(0.0f, 5.0f, 5.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -90.0f);
 float lastX = (float)SCR_WIDTH / 2.0;
 float lastY = (float)SCR_HEIGHT / 2.0;
 bool firstMouse = true;
@@ -103,9 +103,10 @@ int main()
     Shader shaderLightingPass("ssao.vs", "ssao_lighting.fs");
     Shader shaderSSAO("ssao.vs", "ssao.fs");
     Shader shaderSSAOBlur("ssao.vs", "ssao_blur.fs");
+    Shader debugQuad("debug_quad.vs", "debug_quad.fs");
 
     // load models
-    Model nanosuit("nanosuit_reflection/nanosuit.obj");
+    Model backpack("backpack/backpack.obj");
 
     //生成G-Buffer
     unsigned int gBuffer;
@@ -159,7 +160,7 @@ int main()
     //SSAO颜色向量
     glGenTextures(1, &ssaoColorBuffer);
     glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL); //由于环境遮蔽的结果是一个灰度值，所以只需要纹理的红色分量，颜色缓冲的内部格式设置为GL_RED
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0);
@@ -201,10 +202,10 @@ int main()
         ssaoKernel.push_back(sample);
     }
 
-    //生成噪声贴图
+    //生成噪声贴图，用于随机转动半球形采样核心
     std::vector<glm::vec3> ssaoNoise;
     for (unsigned int i = 0; i < 16; i++) {
-        //围绕Z轴的4x4随机旋转向量数组（在切线空间内） rotate around z-axis (in tangent space)
+        //围绕Z轴的4x4随机旋转向量数组（在切线空间内）
         glm::vec3 noise(
             randomFloats(generator) * 2.0 - 1.0,
             randomFloats(generator) * 2.0 - 1.0,
@@ -253,8 +254,7 @@ int main()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // 1. geometry pass: render scene's geometry/color data into gbuffer
-        // -----------------------------------------------------------------
+        //1、几何处理阶段：渲染到G缓冲中
         glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 50.0f);
@@ -271,22 +271,21 @@ int main()
         shaderGeometryPass.setInt("invertedNormals", 1); // invert normals as we're inside the cube
         renderCube();
         shaderGeometryPass.setInt("invertedNormals", 0);
-        // nanosuit model on the floor
+        // backpack model on the floor
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(0.0f, 0.08f, 3.5f));
         model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
         model = glm::scale(model, glm::vec3(0.5f));
         shaderGeometryPass.setMat4("model", model);
-        nanosuit.Draw(shaderGeometryPass);
+        backpack.Draw(shaderGeometryPass);
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-        // 2. generate SSAO texture
-        // ------------------------
+        //2、使用G缓冲渲染SSAO纹理
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
         glClear(GL_COLOR_BUFFER_BIT);
         shaderSSAO.use();
-        // Send kernel + rotation 
+        //设置采样核心和噪声贴图
         for (unsigned int i = 0; i < 64; ++i) {
             shaderSSAO.setVec3("samples[" + std::to_string(i) + "]", ssaoKernel[i]);
         }
@@ -301,7 +300,16 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-        // 3. blur SSAO texture to remove noise因为随机会采样导致图案出现明显的噪声，需要通过模糊处理来修复这一问题
+        ////将纹理缓冲渲染出来以方便调试
+        //glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+        //glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        //debugQuad.use();
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
+        //renderQuad();
+
+
+        //3、模糊处理SSAO纹理以移除噪声。因为重复的噪声纹理会导致图案出现明显的噪声
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
         glClear(GL_COLOR_BUFFER_BIT);
         shaderSSAOBlur.use();
@@ -311,8 +319,7 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-        // 4. lighting pass: traditional deferred Blinn-Phong lighting with added screen-space ambient occlusion
-        // -----------------------------------------------------------------------------------------------------
+        //4、光照处理阶段：传统Blinn-Phong光照 + SSAO
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shaderLightingPass.use();
         // send light relevant uniforms
@@ -353,6 +360,7 @@ void renderCube()
     if (cubeVAO == 0)
     {
         float vertices[] = {
+            //position            normal              texture
             // back face
             -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
              1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right

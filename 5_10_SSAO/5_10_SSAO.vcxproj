@@ -35,6 +35,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="debug_quad.fs" />
+    <None Include="debug_quad.vs" />
     <None Include="ssao.fs" />
     <None Include="ssao.vs" />
     <None Include="ssao_blur.fs" />

@@ -166,13 +166,21 @@ int main()
 
 	//使用前面载入的图片数据生成一个纹理
 	/*
-	第一个参数指定了纹理目标(Target)。设置为GL_TEXTURE_2D意味着会生成与当前绑定的纹理对象在同一个目标上的纹理（任何绑定到GL_TEXTURE_1D和GL_TEXTURE_3D的纹理不会受到影响）。
-	第二个参数为纹理指定多级渐远纹理的级别，如果你希望单独手动设置每个多级渐远纹理的级别的话。这里我们填0，也就是基本级别。
-	第三个参数告诉OpenGL我们希望把纹理储存为何种格式。我们的图像只有RGB值，因此我们也把纹理储存为RGB值。
-	第四个和第五个参数设置最终的纹理的宽度和高度。我们之前加载图像的时候储存了它们，所以我们使用对应的变量。
-	下个参数应该总是被设为0（历史遗留的问题）。
-	第七第八个参数定义了源图的格式和数据类型。我们使用RGB值加载这个图像，并把它们储存为char(byte)数组，我们将会传入对应值。
-	最后一个参数是真正的图像数据。
+	第一个参数target指定纹理单元的类型是哪一种。必须指定为 GL_TEXTURE_2D, GL_PROXY_TEXTURE_2D, GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, or GL_PROXY_TEXTURE_CUBE_MAP中的一个。二维纹理需要指定为GL_TEXTURE_2D。
+
+	第二个参数level指定纹理单元的层次，非mipmap纹理level设置为0，mipmap纹理设置为纹理的层级。
+
+	第三个参数internalFormat指定OpenGL是如何管理纹理单元中数据格式的。它是对OpenGL硬件驱动的一种很强的提示，告诉驱动它里面的数据应该怎么组织。因此如果我们将internalForamt中的格式指定的和format中格式一致就可以更快地进行传输，而不需要在二者之间进行转换。
+
+	第四个width和第五个参数height设置纹理的宽度和高度。
+
+	第六个参数border指定纹理单元的边框，如果包含边框取值为1，不包含边框取值为0。
+
+	第七个参数format指定data所指向的数据的格式。
+	
+	第八个参数type指定data所指向的数据的类型。我们使用RGB值加载这个图像，并把它们储存为char(byte)数组，我们将会传入对应值。
+
+	最后一个参数data指向真正的图像数据。
 	*/
 	//当调用glTexImage2D时，当前绑定的纹理对象就会被附加上纹理图像。
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
