@@ -24,11 +24,11 @@ void renderQuad();
 void renderCube();
 
 // settings
-const unsigned int SCR_WIDTH = 1280;
-const unsigned int SCR_HEIGHT = 720;
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 5.0f));
+Camera camera(glm::vec3(0.0f, 5.0f, 5.0f));
 float lastX = (float)SCR_WIDTH / 2.0;
 float lastY = (float)SCR_HEIGHT / 2.0;
 bool firstMouse = true;
@@ -90,8 +90,13 @@ int main()
     //计算AO的核心问题在于：1如何取采样点。2判断这些采样点是否被遮蔽。
     //对于问题1：我们使用一种指向法线方向的半球形采样块(Sample Kernel)，并在采样块中生成采样点。距离原点越远的点，AO贡献越小。
     //对于问题2：一种方法是将采样点全部投影到View Plane上，相当于获取采样点的UV坐标，并同时获取Depth Buffer中该UV坐标处的深度值。随后比较采样点的深度和场景中该点的深度。如果采样点的深度更大，说明其被场景遮蔽。最终将所有采样点的AO贡献求和，即是该点的AO值。
-
     //https://zhuanlan.zhihu.com/p/25038820
+
+    //法向量半球算法
+    //https://zhuanlan.zhihu.com/p/61421479
+    //创建一个法向量半球，通过法向量半球对周围采样，采集片段周围半球型核心(Kernel)的多个深度样本，并和当前片段深度值对比，高于片段深度值样本的个数就是我们想要的遮蔽因子。
+
+
 
     // build and compile shaders
     Shader shaderGeometryPass("ssao_geometry.vs", "ssao_geometry.fs");
@@ -100,68 +105,68 @@ int main()
     Shader shaderSSAOBlur("ssao.vs", "ssao_blur.fs");
 
     // load models
-    // -----------
     Model nanosuit("nanosuit_reflection/nanosuit.obj");
 
-    // configure g-buffer framebuffer
-    // ------------------------------
+    //生成G-Buffer
     unsigned int gBuffer;
     glGenFramebuffers(1, &gBuffer);
     glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
     unsigned int gPosition, gNormal, gAlbedo;
-    // position color buffer
+    //坐标向量
     glGenTextures(1, &gPosition);
     glBindTexture(GL_TEXTURE_2D, gPosition);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL); //8位浮点精度不足，需要使用16位浮点类型格式
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gPosition, 0);
-    // normal color buffer
+    //法线向量
     glGenTextures(1, &gNormal);
     glBindTexture(GL_TEXTURE_2D, gNormal);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL); //8位浮点精度不足，需要使用16位浮点类型格式
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
-    // color + specular color buffer
+    //颜色+镜面反射系数 向量
     glGenTextures(1, &gAlbedo);
     glBindTexture(GL_TEXTURE_2D, gAlbedo);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, SCR_WIDTH, SCR_HEIGHT, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, gAlbedo, 0);
-    // tell OpenGL which color attachments we'll use (of this framebuffer) for rendering 
+    //渲染时同时渲染3个颜色缓存
     unsigned int attachments[3] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2 };
     glDrawBuffers(3, attachments);
-    // create and attach depth buffer (renderbuffer)
+    //深度buffer
     unsigned int rboDepth;
     glGenRenderbuffers(1, &rboDepth);
     glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, SCR_WIDTH, SCR_HEIGHT);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
+
     // finally check if framebuffer is complete
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Framebuffer not complete!" << std::endl;
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // also create framebuffer to hold SSAO processing stage 
-    // -----------------------------------------------------
+    //SSAO G-Buffer
     unsigned int ssaoFBO, ssaoBlurFBO;
-    glGenFramebuffers(1, &ssaoFBO);  glGenFramebuffers(1, &ssaoBlurFBO);
+    glGenFramebuffers(1, &ssaoFBO);
+    glGenFramebuffers(1, &ssaoBlurFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, ssaoFBO);
     unsigned int ssaoColorBuffer, ssaoColorBufferBlur;
-    // SSAO color buffer
+    //SSAO颜色向量
     glGenTextures(1, &ssaoColorBuffer);
     glBindTexture(GL_TEXTURE_2D, ssaoColorBuffer);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, SCR_WIDTH, SCR_HEIGHT, 0, GL_RED, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBuffer, 0);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cout << "SSAO Framebuffer not complete!" << std::endl;
-    // and blur stage
+    }
+    //模糊处理缓冲
     glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
     glGenTextures(1, &ssaoColorBufferBlur);
     glBindTexture(GL_TEXTURE_2D, ssaoColorBufferBlur);
@@ -169,37 +174,46 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, ssaoColorBufferBlur, 0);
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         std::cout << "SSAO Blur Framebuffer not complete!" << std::endl;
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // generate sample kernel
-    // ----------------------
-    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); // generates random floats between 0.0 and 1.0
-    std::default_random_engine generator;
+    //在切线空间(Tangent Space)内生成半球形采样核心(Kernel)
+    std::uniform_real_distribution<GLfloat> randomFloats(0.0, 1.0); //连续均匀分布类模板，用于生成随机浮点数，范围0.0 - 1.0
+    std::random_device rd;
+    std::default_random_engine generator{ rd() };
+    //GLfloat random = randomFloats(generator); //生成随机数
     std::vector<glm::vec3> ssaoKernel;
-    for (unsigned int i = 0; i < 64; ++i)
-    {
-        glm::vec3 sample(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, randomFloats(generator));
+    for (unsigned int i = 0; i < 64; ++i) {
+        glm::vec3 sample(
+            randomFloats(generator) * 2.0 - 1.0, //X
+            randomFloats(generator) * 2.0 - 1.0, //Y
+            randomFloats(generator)              //Z，半球形
+        );
         sample = glm::normalize(sample);
         sample *= randomFloats(generator);
-        float scale = float(i) / 64.0;
 
-        // scale samples s.t. they're more aligned to center of kernel
+        float scale = float(i) / 64.0;
+        //用一个加速插值函数使采样样本靠近原点分布
         scale = lerp(0.1f, 1.0f, scale * scale);
         sample *= scale;
         ssaoKernel.push_back(sample);
     }
 
-    // generate noise texture
-    // ----------------------
+    //生成噪声贴图
     std::vector<glm::vec3> ssaoNoise;
-    for (unsigned int i = 0; i < 16; i++)
-    {
-        glm::vec3 noise(randomFloats(generator) * 2.0 - 1.0, randomFloats(generator) * 2.0 - 1.0, 0.0f); // rotate around z-axis (in tangent space)
+    for (unsigned int i = 0; i < 16; i++) {
+        //围绕Z轴的4x4随机旋转向量数组（在切线空间内） rotate around z-axis (in tangent space)
+        glm::vec3 noise(
+            randomFloats(generator) * 2.0 - 1.0,
+            randomFloats(generator) * 2.0 - 1.0,
+            0.0f
+        );
         ssaoNoise.push_back(noise);
     }
-    unsigned int noiseTexture; glGenTextures(1, &noiseTexture);
+    unsigned int noiseTexture;
+    glGenTextures(1, &noiseTexture);
     glBindTexture(GL_TEXTURE_2D, noiseTexture);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, 4, 4, 0, GL_RGB, GL_FLOAT, &ssaoNoise[0]);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -208,12 +222,10 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     // lighting info
-    // -------------
     glm::vec3 lightPos = glm::vec3(2.0, 4.0, -2.0);
     glm::vec3 lightColor = glm::vec3(0.2, 0.2, 0.7);
 
     // shader configuration
-    // --------------------
     shaderLightingPass.use();
     shaderLightingPass.setInt("gPosition", 0);
     shaderLightingPass.setInt("gNormal", 1);
@@ -227,21 +239,17 @@ int main()
     shaderSSAOBlur.setInt("ssaoInput", 0);
 
     // render loop
-    // -----------
     while (!glfwWindowShouldClose(window))
     {
         // per-frame time logic
-        // --------------------
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
         // input
-        // -----
         processInput(window);
 
         // render
-        // ------
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -279,8 +287,9 @@ int main()
         glClear(GL_COLOR_BUFFER_BIT);
         shaderSSAO.use();
         // Send kernel + rotation 
-        for (unsigned int i = 0; i < 64; ++i)
+        for (unsigned int i = 0; i < 64; ++i) {
             shaderSSAO.setVec3("samples[" + std::to_string(i) + "]", ssaoKernel[i]);
+        }
         shaderSSAO.setMat4("projection", projection);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, gPosition);
@@ -292,8 +301,7 @@ int main()
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-        // 3. blur SSAO texture to remove noise
-        // ------------------------------------
+        // 3. blur SSAO texture to remove noise因为随机会采样导致图案出现明显的噪声，需要通过模糊处理来修复这一问题
         glBindFramebuffer(GL_FRAMEBUFFER, ssaoBlurFBO);
         glClear(GL_COLOR_BUFFER_BIT);
         shaderSSAOBlur.use();
