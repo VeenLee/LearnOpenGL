@@ -163,10 +163,10 @@ int main()
 		renderQuad();
 
 		// render light source (simply re-renders a smaller plane at the light's position for debugging/visualization)
-		model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.1f));
-		shader.setMat4("model", model);
+		glm::mat4 modelLight = glm::mat4(1.0f);
+		modelLight = glm::translate(modelLight, lightPos);
+		modelLight = glm::scale(modelLight, glm::vec3(0.1f));
+		shader.setMat4("model", modelLight);
 		renderQuad();
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
@@ -192,10 +192,10 @@ void renderQuad()
 	if (quadVAO == 0)
 	{
 		// positions
-		glm::vec3 pos1(-1.0f, 1.0f, 0.0f);
+		glm::vec3 pos1(-1.0f,  1.0f, 0.0f);
 		glm::vec3 pos2(-1.0f, -1.0f, 0.0f);
-		glm::vec3 pos3(1.0f, -1.0f, 0.0f);
-		glm::vec3 pos4(1.0f, 1.0f, 0.0f);
+		glm::vec3 pos3( 1.0f, -1.0f, 0.0f);
+		glm::vec3 pos4( 1.0f,  1.0f, 0.0f);
 		// texture coordinates
 		glm::vec2 uv1(0.0f, 1.0f);
 		glm::vec2 uv2(0.0f, 0.0f);

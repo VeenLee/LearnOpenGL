@@ -1660,6 +1660,28 @@ GLAPI PFNGLDEPTHRANGEPROC glad_glDepthRange;
 typedef void (APIENTRYP PFNGLVIEWPORTPROC)(GLint x, GLint y, GLsizei width, GLsizei height);
 GLAPI PFNGLVIEWPORTPROC glad_glViewport;
 #define glViewport glad_glViewport
+
+#define GL_PROJECTION 0x1701
+#define GL_MODELVIEW 0x1700
+typedef void (APIENTRYP PFNGLMATRIXMODEPROC)(GLenum mode);
+GLAPI PFNGLMATRIXMODEPROC glad_glMatrixMode;
+#define glMatrixMode glad_glMatrixMode
+typedef void (APIENTRYP PFNGLLOADMATRIXFPROC)(const GLfloat* m);
+GLAPI PFNGLLOADMATRIXFPROC glad_glLoadMatrixf;
+#define glLoadMatrixf glad_glLoadMatrixf
+typedef void (APIENTRYP PFNGLCOLOR3FPROC)(GLfloat red, GLfloat green, GLfloat blue);
+GLAPI PFNGLCOLOR3FPROC glad_glColor3f;
+#define glColor3f glad_glColor3f
+typedef void (APIENTRYP PFNGLBEGINPROC)(GLenum mode);
+GLAPI PFNGLBEGINPROC glad_glBegin;
+#define glBegin glad_glBegin
+typedef void (APIENTRYP PFNGLENDPROC)(void);
+GLAPI PFNGLENDPROC glad_glEnd;
+#define glEnd glad_glEnd
+typedef void (APIENTRYP PFNGLVERTEX3FVPROC)(const GLfloat* v);
+GLAPI PFNGLVERTEX3FVPROC glad_glVertex3fv;
+#define glVertex3fv glad_glVertex3fv
+
 #endif
 #ifndef GL_VERSION_1_1
 #define GL_VERSION_1_1 1
