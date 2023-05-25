@@ -15,3 +15,4 @@
 *.ipdb
 *.exe.recipe
 *.FileListAbsolute.txt
+*.vcxproj.user
