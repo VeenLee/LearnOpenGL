@@ -83,13 +83,13 @@ int main()
 	// -------------------------
 	Shader ourShader("anim_model.vs", "anim_model.fs");
 
-	
 	// load models
 	// -----------
-	Model ourModel("vampire/dancing_vampire.dae");
-	Animation danceAnimation("vampire/dancing_vampire.dae", &ourModel);
+	//Model ourModel("vampire/dancing_vampire.dae");
+	//Animation danceAnimation("vampire/dancing_vampire.dae", &ourModel);
+	Model ourModel("boblampclean/boblampclean.md5mesh");
+	Animation danceAnimation("boblampclean/boblampclean.md5anim", &ourModel);
 	Animator animator(&danceAnimation);
-
 
 	// draw in wireframe
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -127,14 +127,13 @@ int main()
 		for (int i = 0; i < transforms.size(); ++i)
 			ourShader.setMat4("finalBonesMatrices[" + std::to_string(i) + "]", transforms[i]);
 
-
 		// render the loaded model
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, -0.4f, 0.0f)); // translate it down so it's at the center of the scene
-		model = glm::scale(model, glm::vec3(.5f, .5f, .5f));	// it's a bit too big for our scene, so scale it down
+		//model = glm::scale(model, glm::vec3(.5f, .5f, .5f));	// it's a bit too big for our scene, so scale it down
+		model = glm::scale(model, glm::vec3(.005f, .005f, .005f));	// it's a bit too big for our scene, so scale it down
 		ourShader.setMat4("model", model);
 		ourModel.Draw(ourShader);
-
 
 		// glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
 		// -------------------------------------------------------------------------------
