@@ -52,6 +52,7 @@ public:
 			nodeTransform = Bone->GetLocalTransform();
 		}
 
+		//nodeTransform是局部空间矩阵，是相对于父骨骼的变换矩阵，所以需要与父节点变换矩阵相乘，否则将围绕原点移动骨骼
 		glm::mat4 globalTransformation = parentTransform * nodeTransform;
 
 		auto boneInfoMap = m_CurrentAnimation->GetBoneIDMap();
@@ -59,7 +60,8 @@ public:
 		{
 			int index = boneInfoMap[nodeName].id;
 			glm::mat4 offset = boneInfoMap[nodeName].offset;
-			m_FinalBoneMatrices[index] = globalTransformation * offset;
+			//从模型空间转换到骨骼空间
+			m_FinalBoneMatrices[index] = globalTransformation * offset; //最终变换矩阵 = 父骨骼变换矩阵N * ... * 父骨骼变换矩阵1 * 骨骼变换矩阵 * 骨骼空间转换矩阵
 		}
 
 		for (int i = 0; i < node->childrenCount; i++)
