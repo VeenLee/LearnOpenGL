@@ -49,6 +49,8 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
@@ -83,12 +85,15 @@ int main()
     glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_CULL_FACE);
 
+    // load models
+    Model ourModel("ply/model.ply");
+
     // build and compile shaders
     // -------------------------
 	Shader shader("pbr.vs", "pbr.fs");
 
     shader.use();
-    shader.setVec3("albedo", 0.5f, 0.0f, 0.0f);
+    shader.setVec3("albedo", 192.0f / 255.0f, 168.0f / 255.0f, 145.0f / 255.0f);
     shader.setFloat("ao", 1.0f);
 
     // lights
@@ -141,26 +146,31 @@ int main()
 
         // render rows*column number of spheres with varying metallic/roughness values scaled by rows and columns respectively
         glm::mat4 model = glm::mat4(1.0f);
-        for (int row = 0; row < nrRows; ++row)
-        {
-            shader.setFloat("metallic", (float)row / (float)nrRows);
-            for (int col = 0; col < nrColumns; ++col)
-            {
-                // we clamp the roughness to 0.05 - 1.0 as perfectly smooth surfaces (roughness of 0.0) tend to look a bit off
-                // on direct lighting.
-                shader.setFloat("roughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
+        //for (int row = 0; row < nrRows; ++row)
+        //{
+        //    shader.setFloat("metallic", (float)row / (float)nrRows);
+        //    for (int col = 0; col < nrColumns; ++col)
+        //    {
+        //        // we clamp the roughness to 0.05 - 1.0 as perfectly smooth surfaces (roughness of 0.0) tend to look a bit off
+        //        // on direct lighting.
+        //        shader.setFloat("roughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(
-                    (col - (nrColumns / 2)) * spacing,
-                    (row - (nrRows / 2)) * spacing,
-                    0.0f
-                ));
-                shader.setMat4("model", model);
-                shader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-                renderSphere();
-            }
-        }
+        //        model = glm::mat4(1.0f);
+        //        model = glm::translate(model, glm::vec3(
+        //            (col - (nrColumns / 2)) * spacing,
+        //            (row - (nrRows / 2)) * spacing,
+        //            0.0f
+        //        ));
+        //        shader.setMat4("model", model);
+        //        shader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+        //        renderSphere();
+        //    }
+        //}
+
+        shader.setFloat("roughness", 0.15f);
+        shader.setMat4("model", model);
+        shader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+        ourModel.Draw(shader);
 
         // render light source (simply re-render sphere at light positions)
         // this looks a bit off as we use the same shader, but it'll make their positions obvious and 
