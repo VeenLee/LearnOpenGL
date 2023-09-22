@@ -93,7 +93,7 @@ int main()
 	Shader shader("pbr.vs", "pbr.fs");
 
     shader.use();
-    shader.setVec3("albedo", 192.0f / 255.0f, 168.0f / 255.0f, 145.0f / 255.0f);
+    shader.setVec3("albedo", 200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f);
     shader.setFloat("ao", 1.0f);
 
     // lights
@@ -101,14 +101,16 @@ int main()
     glm::vec3 lightPositions[] = {
         glm::vec3(-10.0f,  10.0f, 10.0f),
         glm::vec3(10.0f,  10.0f, 10.0f),
+        glm::vec3(0.0f,  0.0f, 10.0f),
         glm::vec3(-10.0f, -10.0f, 10.0f),
         glm::vec3(10.0f, -10.0f, 10.0f),
     };
     glm::vec3 lightColors[] = {
-        glm::vec3(300.0f, 300.0f, 300.0f),
-        glm::vec3(300.0f, 300.0f, 300.0f),
-        glm::vec3(300.0f, 300.0f, 300.0f),
-        glm::vec3(300.0f, 300.0f, 300.0f)
+        glm::vec3(200.0f, 200.0f, 200.0f),
+        glm::vec3(200.0f, 200.0f, 200.0f),
+        glm::vec3(200.0f, 200.0f, 200.0f),
+        glm::vec3(200.0f, 200.0f, 200.0f),
+        glm::vec3(200.0f, 200.0f, 200.0f)
     };
     int nrRows = 7;
     int nrColumns = 7;
@@ -167,7 +169,8 @@ int main()
         //    }
         //}
 
-        shader.setFloat("roughness", 0.15f);
+        shader.setFloat("metallic", 0.01f);
+        shader.setFloat("roughness", 0.25f);
         shader.setMat4("model", model);
         shader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         ourModel.Draw(shader);
