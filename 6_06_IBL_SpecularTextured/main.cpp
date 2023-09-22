@@ -51,6 +51,8 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    glfwWindowHint(GLFW_SAMPLES, 4);
+
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
@@ -87,6 +89,9 @@ int main()
     glDepthFunc(GL_LEQUAL);
     // enable seamless cubemap sampling for lower mip levels in the pre-filter map.
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
+    // load models
+    Model ourModel("ply/model.ply");
 
     // build and compile shaders
     // -------------------------
@@ -196,7 +201,6 @@ int main()
     else
     {
         std::cout << "Failed to load HDR image." << std::endl;
-        return -1;
     }
 
     // pbr: setup cubemap to render to and attach to framebuffer
@@ -302,7 +306,7 @@ int main()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // be sure to set minifcation filter to mip_linear 
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR); // be sure to set minification filter to mip_linear 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // generate mipmaps for the cubemap so OpenGL automatically allocates the required memory.
     glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
@@ -320,8 +324,8 @@ int main()
     for (unsigned int mip = 0; mip < maxMipLevels; ++mip)
     {
         // reisze framebuffer according to mip-level size.
-        unsigned int mipWidth = 128 * std::pow(0.5, mip);
-        unsigned int mipHeight = 128 * std::pow(0.5, mip);
+        unsigned int mipWidth = static_cast<unsigned int>(128 * std::pow(0.5, mip));
+        unsigned int mipHeight = static_cast<unsigned int>(128 * std::pow(0.5, mip));
         glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
         glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
         glViewport(0, 0, mipWidth, mipHeight);
@@ -366,6 +370,7 @@ int main()
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+
     // initialize static shader uniforms before rendering
     // --------------------------------------------------
     glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -385,7 +390,7 @@ int main()
     {
         // per-frame time logic
         // --------------------
-        float currentFrame = glfwGetTime();
+        float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
@@ -395,7 +400,7 @@ int main()
 
         // render
         // ------
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // render scene, supplying the convoluted irradiance map to the final shader.
@@ -429,6 +434,7 @@ int main()
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-5.0, 0.0, 2.0));
         pbrShader.setMat4("model", model);
+        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         renderSphere();
 
         // gold
@@ -446,6 +452,7 @@ int main()
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-3.0, 0.0, 2.0));
         pbrShader.setMat4("model", model);
+        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         renderSphere();
 
         // grass
@@ -463,6 +470,7 @@ int main()
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(-1.0, 0.0, 2.0));
         pbrShader.setMat4("model", model);
+        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         renderSphere();
 
         // plastic
@@ -480,6 +488,7 @@ int main()
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(1.0, 0.0, 2.0));
         pbrShader.setMat4("model", model);
+        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         renderSphere();
 
         // wall
@@ -497,6 +506,7 @@ int main()
         model = glm::mat4(1.0f);
         model = glm::translate(model, glm::vec3(3.0, 0.0, 2.0));
         pbrShader.setMat4("model", model);
+        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         renderSphere();
 
         // render light source (simply re-render sphere at light positions)
@@ -513,6 +523,7 @@ int main()
             model = glm::translate(model, newPos);
             model = glm::scale(model, glm::vec3(0.5f));
             pbrShader.setMat4("model", model);
+            pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
             renderSphere();
         }
 
@@ -521,14 +532,15 @@ int main()
 
         backgroundShader.setMat4("view", view);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+        //glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
         //glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap); // display irradiance map
-        //glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap); // display prefilter map
+        glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap); // display prefilter map
         renderCube();
 
         // render BRDF map to screen
         //brdfShader.Use();
         //renderQuad();
+
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
@@ -622,7 +634,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 // renders (and builds at first invocation) a sphere
 // -------------------------------------------------
 unsigned int sphereVAO = 0;
-unsigned int indexCount;
+GLsizei indexCount;
 void renderSphere()
 {
     if (sphereVAO == 0)
@@ -640,10 +652,10 @@ void renderSphere()
 
         const unsigned int X_SEGMENTS = 64;
         const unsigned int Y_SEGMENTS = 64;
-        const float PI = 3.14159265359;
-        for (unsigned int y = 0; y <= Y_SEGMENTS; ++y)
+        const float PI = 3.14159265359f;
+        for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
         {
-            for (unsigned int x = 0; x <= X_SEGMENTS; ++x)
+            for (unsigned int y = 0; y <= Y_SEGMENTS; ++y)
             {
                 float xSegment = (float)x / (float)X_SEGMENTS;
                 float ySegment = (float)y / (float)Y_SEGMENTS;
@@ -678,7 +690,7 @@ void renderSphere()
             }
             oddRow = !oddRow;
         }
-        indexCount = indices.size();
+        indexCount = static_cast<GLsizei>(indices.size());
 
         std::vector<float> data;
         for (unsigned int i = 0; i < positions.size(); ++i)
@@ -686,16 +698,16 @@ void renderSphere()
             data.push_back(positions[i].x);
             data.push_back(positions[i].y);
             data.push_back(positions[i].z);
-            if (uv.size() > 0)
-            {
-                data.push_back(uv[i].x);
-                data.push_back(uv[i].y);
-            }
             if (normals.size() > 0)
             {
                 data.push_back(normals[i].x);
                 data.push_back(normals[i].y);
                 data.push_back(normals[i].z);
+            }
+            if (uv.size() > 0)
+            {
+                data.push_back(uv[i].x);
+                data.push_back(uv[i].y);
             }
         }
         glBindVertexArray(sphereVAO);
@@ -703,13 +715,13 @@ void renderSphere()
         glBufferData(GL_ARRAY_BUFFER, data.size() * sizeof(float), &data[0], GL_STATIC_DRAW);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
-        float stride = (3 + 2 + 3) * sizeof(float);
+        unsigned int stride = (3 + 2 + 3) * sizeof(float);
         glEnableVertexAttribArray(0);
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
         glEnableVertexAttribArray(1);
-        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
         glEnableVertexAttribArray(2);
-        glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(5 * sizeof(float)));
+        glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, stride, (void*)(6 * sizeof(float)));
     }
 
     glBindVertexArray(sphereVAO);
@@ -754,20 +766,20 @@ void renderCube()
              1.0f, -1.0f, -1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f, // bottom-right
              1.0f,  1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f, // top-left
              1.0f, -1.0f,  1.0f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f, // bottom-left     
-            // bottom face
-            -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-             1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
-             1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-             1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
-            -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
-            -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
-            // top face
-            -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-             1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-             1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
-             1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
-            -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
-            -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
+             // bottom face
+             -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+              1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, // top-left
+              1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+              1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, // bottom-left
+             -1.0f, -1.0f,  1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, // bottom-right
+             -1.0f, -1.0f, -1.0f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, // top-right
+             // top face
+             -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+              1.0f,  1.0f , 1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+              1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, // top-right     
+              1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, // bottom-right
+             -1.0f,  1.0f, -1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, // top-left
+             -1.0f,  1.0f,  1.0f,  0.0f,  1.0f,  0.0f, 0.0f, 0.0f  // bottom-left        
         };
         glGenVertexArrays(1, &cubeVAO);
         glGenBuffers(1, &cubeVBO);

@@ -15,9 +15,11 @@ uniform samplerCube irradianceMap;
 uniform samplerCube prefilterMap;
 uniform sampler2D brdfLUT;
 
+#define LIGHTS_COUNT 5
+
 // lights
-uniform vec3 lightPositions[4];
-uniform vec3 lightColors[4];
+uniform vec3 lightPositions[LIGHTS_COUNT];
+uniform vec3 lightColors[LIGHTS_COUNT];
 
 uniform vec3 camPos;
 
@@ -60,16 +62,16 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 // ----------------------------------------------------------------------------
 vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
-    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 // ----------------------------------------------------------------------------
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 {
-    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+    return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }   
 // ----------------------------------------------------------------------------
 void main()
-{		
+{
     vec3 N = Normal;
     vec3 V = normalize(camPos - WorldPos);
     vec3 R = reflect(-V, N); 
@@ -81,7 +83,7 @@ void main()
 
     // reflectance equation
     vec3 Lo = vec3(0.0);
-    for(int i = 0; i < 4; ++i) 
+    for(int i = 0; i < LIGHTS_COUNT; ++i) 
     {
         // calculate per-light radiance
         vec3 L = normalize(lightPositions[i] - WorldPos);
@@ -95,9 +97,9 @@ void main()
         float G   = GeometrySmith(N, V, L, roughness);    
         vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);        
         
-        vec3 nominator    = NDF * G * F;
-        float denominator = 4 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.001; // 0.001 to prevent divide by zero.
-        vec3 specular = nominator / denominator;
+        vec3 numerator    = NDF * G * F;
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // + 0.0001 to prevent divide by zero
+        vec3 specular = numerator / denominator;
         
          // kS is equal to Fresnel
         vec3 kS = F;
@@ -108,7 +110,7 @@ void main()
         // multiply kD by the inverse metalness such that only non-metals 
         // have diffuse lighting, or a linear blend if partly metal (pure metals
         // have no diffuse light).
-        kD *= 1.0 - metallic;	                
+        kD *= 1.0 - metallic;
             
         // scale light by NdotL
         float NdotL = max(dot(N, L), 0.0);        
@@ -122,7 +124,7 @@ void main()
     
     vec3 kS = F;
     vec3 kD = 1.0 - kS;
-    kD *= 1.0 - metallic;	  
+    kD *= 1.0 - metallic;
     
     vec3 irradiance = texture(irradianceMap, N).rgb;
     vec3 diffuse      = irradiance * albedo;
