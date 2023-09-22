@@ -91,7 +91,15 @@ int main()
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     // load models
-    Model ourModel("ply/model.ply");
+    //Model ourModel("ply/model.ply");
+    //Model ourModel("F:/Downloads/model.ply");
+    //ifstream textureCoord("F:/Downloads/textcoord.txt", ios_base::in);
+    //for (unsigned int i = 0; i < ourModel.meshes[0].vertices.size(); i++) {
+    //    textureCoord >> ourModel.meshes[0].vertices[i].TexCoords.x;
+    //    textureCoord >> ourModel.meshes[0].vertices[i].TexCoords.y;
+    //}
+    //textureCoord.close();
+    //unsigned int diffuseMap = loadTexture("F:/Downloads/Diffuse.png", false);
 
     // build and compile shaders
     // -------------------------
@@ -408,12 +416,15 @@ int main()
             }
         }
 
-        model = glm::mat4(1.0f);
-        pbrShader.setFloat("metallic", 0.05f);
-        pbrShader.setFloat("roughness", 0.15f);
-        pbrShader.setMat4("model", model);
-        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-        ourModel.Draw(pbrShader);
+        //pbrShader.setInt("albedoMap", 3);
+        //glActiveTexture(GL_TEXTURE3);
+        //glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        //model = glm::mat4(1.0f);
+        //pbrShader.setFloat("metallic", 0.05f);
+        //pbrShader.setFloat("roughness", 0.15f);
+        //pbrShader.setMat4("model", model);
+        //pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+        //ourModel.Draw(pbrShader);
 
 
         // render light source (simply re-render sphere at light positions)
