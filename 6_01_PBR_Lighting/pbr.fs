@@ -10,9 +10,11 @@ uniform float metallic;
 uniform float roughness;
 uniform float ao;
 
+#define LIGHTS_COUNT 5
+
 // lights
-uniform vec3 lightPositions[4];
-uniform vec3 lightColors[4];
+uniform vec3 lightPositions[LIGHTS_COUNT];
+uniform vec3 lightColors[LIGHTS_COUNT];
 
 uniform vec3 camPos;
 
@@ -65,12 +67,12 @@ void main()
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
-    vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, albedo, metallic);
+    vec3 F0 = vec3(0.06);
+    F0 = mix(F0, albedo, metallic); // x*(1-a)+y*a
 
     // reflectance equation
     vec3 Lo = vec3(0.0);
-    for(int i = 0; i < 4; ++i) 
+    for(int i = 0; i < LIGHTS_COUNT; ++i) 
     {
         // calculate per-light radiance
         vec3 L = normalize(lightPositions[i] - WorldPos);
@@ -115,7 +117,7 @@ void main()
     // HDR tonemapping
     color = color / (color + vec3(1.0));
     // gamma correct
-    color = pow(color, vec3(1.0/2.2)); 
+    color = pow(color, vec3(1.0/2.2));
 
     FragColor = vec4(color, 1.0);
 }
