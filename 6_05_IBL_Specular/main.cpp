@@ -92,14 +92,14 @@ int main()
 
     // load models
     //Model ourModel("ply/model.ply");
-    //Model ourModel("F:/Downloads/model.ply");
-    //ifstream textureCoord("F:/Downloads/textcoord.txt", ios_base::in);
-    //for (unsigned int i = 0; i < ourModel.meshes[0].vertices.size(); i++) {
-    //    textureCoord >> ourModel.meshes[0].vertices[i].TexCoords.x;
-    //    textureCoord >> ourModel.meshes[0].vertices[i].TexCoords.y;
-    //}
-    //textureCoord.close();
-    //unsigned int diffuseMap = loadTexture("F:/Downloads/Diffuse.png", false);
+    Model ourModel("F:/Downloads/model.ply");
+    ifstream textureCoord("F:/Downloads/textcoord.txt", ios_base::in);
+    for (unsigned int i = 0; i < ourModel.meshes[0].vertices.size(); i++) {
+        textureCoord >> ourModel.meshes[0].vertices[i].TexCoords.x;
+        textureCoord >> ourModel.meshes[0].vertices[i].TexCoords.y;
+    }
+    textureCoord.close();
+    unsigned int diffuseMap = loadTexture("F:/Downloads/Diffuse.png", false);
 
     // build and compile shaders
     // -------------------------
@@ -130,11 +130,11 @@ int main()
         glm::vec3(10.0f, -10.0f, 10.0f),
     };
     glm::vec3 lightColors[] = {
-        glm::vec3(200.0f, 200.0f, 200.0f),
-        glm::vec3(200.0f, 200.0f, 200.0f),
-        glm::vec3(200.0f, 200.0f, 200.0f),
-        glm::vec3(200.0f, 200.0f, 200.0f),
-        glm::vec3(200.0f, 200.0f, 200.0f)
+        glm::vec3(1.0f, 1.0f, 1.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f),
+        glm::vec3(1.0f, 1.0f, 1.0f)
     };
     int nrRows = 7;
     int nrColumns = 7;
@@ -156,13 +156,13 @@ int main()
     // ---------------------------------
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
-    float* data = stbi_loadf("hdr/newport_loft.hdr", &width, &height, &nrComponents, 0);
+    float* data = stbi_loadf("hdr/unfinished_office_night_1k.hdr", &width, &height, &nrComponents, 0);
     unsigned int hdrTexture;
     if (data)
     {
         glGenTextures(1, &hdrTexture);
         glBindTexture(GL_TEXTURE_2D, hdrTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data); // note how we specify the texture's data value to be float
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, data); // note how we specify the texture's data value to be float
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -416,15 +416,15 @@ int main()
             }
         }
 
-        //pbrShader.setInt("albedoMap", 3);
-        //glActiveTexture(GL_TEXTURE3);
-        //glBindTexture(GL_TEXTURE_2D, diffuseMap);
-        //model = glm::mat4(1.0f);
-        //pbrShader.setFloat("metallic", 0.05f);
-        //pbrShader.setFloat("roughness", 0.15f);
-        //pbrShader.setMat4("model", model);
-        //pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-        //ourModel.Draw(pbrShader);
+        pbrShader.setInt("albedoMap", 3);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        model = glm::mat4(1.0f);
+        pbrShader.setFloat("metallic", 0.05f);
+        pbrShader.setFloat("roughness", 0.15f);
+        pbrShader.setMat4("model", model);
+        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+        ourModel.Draw(pbrShader);
 
 
         // render light source (simply re-render sphere at light positions)
