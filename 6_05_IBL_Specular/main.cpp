@@ -13,6 +13,9 @@
 #include "camera.h"
 #include "model.h"
 
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
+
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -196,12 +199,12 @@ int main()
     glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
     glm::mat4 captureViews[] =
     {
-        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),
-        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),
-        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
-        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),  //右，上下翻转，OpenGL的Y轴0坐标在图片的底部
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),  //左
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),  //上
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),  //下
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),  //后
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))   //前
     };
 
     // pbr: convert HDR equirectangular environment map to cubemap equivalent
@@ -222,6 +225,20 @@ int main()
 
         renderCube();
     }
+
+    //for debug
+    float* depthImgBuffer = new float[512 * 512 * 3];
+    cv::Mat depthImg = cv::Mat::zeros(cv::Size(512, 512), CV_32FC3);
+    glReadBuffer(GL_COLOR_ATTACHMENT0);
+    glPixelStorei(GL_PACK_ALIGNMENT, 4);
+    glReadPixels(0, 0, depthImg.cols, depthImg.rows, GLenum(GL_RGB), GLenum(GL_FLOAT), depthImgBuffer);
+    for (int i = 0; i < depthImg.rows; i++) {
+    	float* ptr = depthImg.ptr<float>(depthImg.rows - i - 1);
+    	//flip Y
+    	memcpy((void*)ptr, depthImgBuffer + i * depthImg.cols * 3, depthImg.cols * 4 * 3);
+    }
+    delete[] depthImgBuffer;
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // then let OpenGL generate mipmaps from first mip face (combatting visible dots artifact)
@@ -456,13 +473,21 @@ int main()
             renderSphere();
         }
 
-        // render skybox (render as last to prevent overdraw)
-        backgroundShader.use();
-        backgroundShader.setMat4("view", view);
+        //// render skybox (render as last to prevent overdraw)
+        //backgroundShader.use();
+        //backgroundShader.setMat4("view", view);
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
+        ////glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap); // display irradiance map
+        ////glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap); // display prefilter map
+        //renderCube();
+
+        equirectangularToCubemapShader.use();
+        equirectangularToCubemapShader.setInt("equirectangularMap", 0);
+        equirectangularToCubemapShader.setMat4("projection", projection);
+        equirectangularToCubemapShader.setMat4("view", view);
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, envCubemap);
-        //glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap); // display irradiance map
-        //glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap); // display prefilter map
+        glBindTexture(GL_TEXTURE_2D, hdrTexture);
         renderCube();
 
 
