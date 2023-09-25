@@ -5,12 +5,12 @@ in vec3 WorldPos;
 in vec3 Normal;
 
 // material parameters
-uniform vec3 albedo;
+//uniform vec3 albedo;
 uniform float metallic;
 uniform float roughness;
 uniform float ao;
 
-//uniform sampler2D albedoMap;
+uniform sampler2D albedoMap;
 
 // IBL
 uniform samplerCube irradianceMap;
@@ -85,7 +85,8 @@ vec3 ACESToneMapping(vec3 color, float adapted_lum)
 // ----------------------------------------------------------------------------
 void main()
 {
-    //vec3 albedo = pow(texture(albedoMap, TexCoords).rgb, vec3(2.2));
+    vec3 albedo = pow(texture(albedoMap, TexCoords).rgb, vec3(2.2));
+    //vec3 albedo = texture(albedoMap, TexCoords).rgb;
 
     vec3 N = Normal;
     vec3 V = normalize(camPos - WorldPos);
@@ -101,9 +102,9 @@ void main()
     for(int i = 0; i < LIGHTS_COUNT; ++i) 
     {
         // calculate per-light radiance
-        vec3 L = normalize(lightPositions[i] - WorldPos);
+        vec3 L = normalize(lightPositions[0] - WorldPos); //只使用正前方的灯光位置
         vec3 H = normalize(V + L);
-        float distance = length(lightPositions[i] - WorldPos);
+        float distance = length(lightPositions[0] - WorldPos); //只使用正前方的灯光位置
         float attenuation = 1.0 / (distance * distance);
         vec3 radiance = lightColors[i] * attenuation;
 
@@ -160,5 +161,5 @@ void main()
     // gamma correct
     color = pow(color, vec3(1.0/2.2)); 
 
-    FragColor = vec4(color , 1.0);
+    FragColor = vec4(color, 1.0);
 }

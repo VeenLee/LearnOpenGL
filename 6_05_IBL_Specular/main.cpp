@@ -25,15 +25,15 @@ void renderCube();
 void renderQuad();
 
 // settings
-const unsigned int SCR_WIDTH = 1280;
-const unsigned int SCR_HEIGHT = 720;
+const unsigned int SCR_WIDTH = 1024;
+const unsigned int SCR_HEIGHT = 768;
 
 bool hdr = true;
 bool hdrKeyPressed = false;
 float exposure = 1.0f;
 
 // camera
-Camera camera(glm::vec3(0.0f, 0.0f, 30.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 10.0f));
 float lastX = (float)SCR_WIDTH / 2.0;
 float lastY = (float)SCR_HEIGHT / 2.0;
 bool firstMouse = true;
@@ -130,11 +130,11 @@ int main()
         glm::vec3(10.0f, -10.0f, 10.0f),
     };
     glm::vec3 lightColors[] = {
-        glm::vec3(1.0f, 1.0f, 1.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f),
-        glm::vec3(1.0f, 1.0f, 1.0f)
+        glm::vec3(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f),
+        glm::vec3(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f),
+        glm::vec3(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f),
+        glm::vec3(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f),
+        glm::vec3(200.0f / 255.0f, 200.0f / 255.0f, 200.0f / 255.0f)
     };
     int nrRows = 7;
     int nrColumns = 7;
@@ -156,13 +156,13 @@ int main()
     // ---------------------------------
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
-    float* data = stbi_loadf("hdr/unfinished_office_night_1k.hdr", &width, &height, &nrComponents, 0);
+    float* data = stbi_loadf("hdr/night_bridge_1k.hdr", &width, &height, &nrComponents, 0);
     unsigned int hdrTexture;
     if (data)
     {
         glGenTextures(1, &hdrTexture);
         glBindTexture(GL_TEXTURE_2D, hdrTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB, GL_FLOAT, data); // note how we specify the texture's data value to be float
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, data); // note how we specify the texture's data value to be float
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -386,42 +386,53 @@ int main()
         pbrShader.setVec3("camPos", camera.Position);
 
         // bind pre-computed IBL data
-        glActiveTexture(GL_TEXTURE0);
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
+        //glActiveTexture(GL_TEXTURE1);
+        //glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
+        //glActiveTexture(GL_TEXTURE2);
+        //glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+
+        int iTextureOffset = 10;
+        glActiveTexture(GL_TEXTURE0 + iTextureOffset);
         glBindTexture(GL_TEXTURE_CUBE_MAP, irradianceMap);
-        glActiveTexture(GL_TEXTURE1);
+        glActiveTexture(GL_TEXTURE0 + iTextureOffset + 1);
         glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap);
-        glActiveTexture(GL_TEXTURE2);
+        glActiveTexture(GL_TEXTURE0 + iTextureOffset + 2);
         glBindTexture(GL_TEXTURE_2D, brdfLUTTexture);
+        pbrShader.setInt("irradianceMap", iTextureOffset);
+        pbrShader.setInt("prefilterMap", iTextureOffset + 1);
+        pbrShader.setInt("brdfLUT", iTextureOffset + 2);
 
         // render rows*column number of spheres with varying metallic/roughness values scaled by rows and columns respectively
         glm::mat4 model = glm::mat4(1.0f);
-        for (int row = 0; row < nrRows; ++row)
-        {
-            pbrShader.setFloat("metallic", (float)row / (float)nrRows);
-            for (int col = 0; col < nrColumns; ++col)
-            {
-                // we clamp the roughness to 0.025 - 1.0 as perfectly smooth surfaces (roughness of 0.0) tend to look a bit off
-                // on direct lighting.
-                pbrShader.setFloat("roughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
+        //for (int row = 0; row < nrRows; ++row)
+        //{
+        //    pbrShader.setFloat("metallic", (float)row / (float)nrRows);
+        //    for (int col = 0; col < nrColumns; ++col)
+        //    {
+        //        // we clamp the roughness to 0.025 - 1.0 as perfectly smooth surfaces (roughness of 0.0) tend to look a bit off
+        //        // on direct lighting.
+        //        pbrShader.setFloat("roughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
 
-                model = glm::mat4(1.0f);
-                model = glm::translate(model, glm::vec3(
-                    (float)(col - (nrColumns / 2)) * spacing,
-                    (float)(row - (nrRows / 2)) * spacing,
-                    -2.0f
-                ));
-                pbrShader.setMat4("model", model);
-                pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-                renderSphere();
-            }
-        }
+        //        model = glm::mat4(1.0f);
+        //        model = glm::translate(model, glm::vec3(
+        //            (float)(col - (nrColumns / 2)) * spacing,
+        //            (float)(row - (nrRows / 2)) * spacing,
+        //            -2.0f
+        //        ));
+        //        pbrShader.setMat4("model", model);
+        //        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+        //        renderSphere();
+        //    }
+        //}
 
-        pbrShader.setInt("albedoMap", 3);
         glActiveTexture(GL_TEXTURE3);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        pbrShader.setInt("albedoMap", 3);
         model = glm::mat4(1.0f);
-        pbrShader.setFloat("metallic", 0.05f);
-        pbrShader.setFloat("roughness", 0.15f);
+        pbrShader.setFloat("metallic", 0.3f);
+        pbrShader.setFloat("roughness", 0.25f);
         pbrShader.setMat4("model", model);
         pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
         ourModel.Draw(pbrShader);

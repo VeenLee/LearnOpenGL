@@ -91,7 +91,7 @@ int main()
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     // load models
-    Model ourModel("ply/model.ply");
+    //Model ourModel("ply/model.ply");
 
     // build and compile shaders
     // -------------------------
@@ -183,7 +183,7 @@ int main()
     // ---------------------------------
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
-    float* data = stbi_loadf("hdr/newport_loft.hdr", &width, &height, &nrComponents, 0);
+    float* data = stbi_loadf("hdr/night_bridge_1k.hdr", &width, &height, &nrComponents, 0);
     unsigned int hdrTexture;
     if (data)
     {
