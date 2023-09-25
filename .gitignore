@@ -16,3 +16,4 @@
 *.exe.recipe
 *.FileListAbsolute.txt
 *.vcxproj.user
+x64/*
