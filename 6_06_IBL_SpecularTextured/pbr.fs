@@ -88,7 +88,18 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 vec3 fresnelSchlickRoughness(float cosTheta, vec3 F0, float roughness)
 {
     return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
-}   
+}
+vec3 ACESToneMapping(vec3 color, float adapted_lum)
+{
+    const float A = 2.51;
+    const float B = 0.03;
+    const float C = 2.43;
+    const float D = 0.59;
+    const float E = 0.14;
+    
+    color *= adapted_lum;
+    return (color * (A * color + B)) / (color * (C * color + D) + E);
+}
 // ----------------------------------------------------------------------------
 void main()
 {
@@ -167,7 +178,8 @@ void main()
     vec3 color = ambient + Lo;
 
     // HDR tonemapping
-    color = color / (color + vec3(1.0));
+    //color = color / (color + vec3(1.0));
+    color = ACESToneMapping(color, 1.0);
     // gamma correct
     color = pow(color, vec3(1.0/2.2)); 
 

@@ -13,8 +13,8 @@
 #include "camera.h"
 #include "model.h"
 
-#include <opencv2/opencv.hpp>
-#include <opencv2/core/core.hpp>
+//#include <opencv2/opencv.hpp>
+//#include <opencv2/core/core.hpp>
 
 #include <iostream>
 
@@ -159,7 +159,7 @@ int main()
     // ---------------------------------
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrComponents;
-    float* data = stbi_loadf("hdr/night_bridge_1k.hdr", &width, &height, &nrComponents, 0);
+    float* data = stbi_loadf("hdr/poly_haven_studio_1k.hdr", &width, &height, &nrComponents, 0);
     unsigned int hdrTexture;
     if (data)
     {
@@ -199,9 +199,10 @@ int main()
     glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
     glm::mat4 captureViews[] =
     {
-        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),  //右，上下翻转，OpenGL的Y轴0坐标在图片的底部，左右翻转，因为要从Cube内侧采样
-        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),  //左，上下翻转，左右翻转
-        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),  //上，上下翻转
+        //上下翻转，OpenGL的Y轴0坐标在图片的底部
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),  //右，左右翻转，因为要从Cube内侧采样
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),  //左，左右翻转
+        glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  1.0f,  0.0f), glm::vec3(0.0f,  0.0f,  1.0f)),  //上，
         glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f,  0.0f), glm::vec3(0.0f,  0.0f, -1.0f)),  //下，左右翻转
         glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),  //后
         glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))   //前
@@ -227,18 +228,16 @@ int main()
     }
 
     ////for debug
-    //float* depthImgBuffer = new float[512 * 512 * 3 * 6];
+    //float* depthImgBuffer = new float[512 * 512 * 3];
     //cv::Mat depthImg = cv::Mat::zeros(cv::Size(512, 512), CV_32FC3);
     //glReadBuffer(GL_COLOR_ATTACHMENT0);
     //glPixelStorei(GL_PACK_ALIGNMENT, 4);
-    //glReadPixels(0, 0, depthImg.cols, depthImg.rows * 6, GLenum(GL_RGB), GLenum(GL_FLOAT), depthImgBuffer);
-    //for (int j = 0; j < 6; j++) {
-    //    for (int i = 0; i < depthImg.rows; i++) {
-    //        float* ptr = depthImg.ptr<float>(i);
-    //        memcpy((void*)ptr, depthImgBuffer + (i + j * depthImg.rows) * depthImg.cols * 3, depthImg.cols * 4 * 3);
-    //    }
-    //    std::cout << "Next side." << std::endl;
+    //glReadPixels(0, 0, depthImg.cols, depthImg.rows, GLenum(GL_RGB), GLenum(GL_FLOAT), depthImgBuffer);
+    //for (int i = 0; i < depthImg.rows; i++) {
+    //    float* ptr = depthImg.ptr<float>(depthImg.rows - i - 1);
+    //    memcpy((void*)ptr, depthImgBuffer + i * depthImg.cols * 3, depthImg.cols * 4 * 3);
     //}
+    //std::cout << "Next side." << std::endl;
     //delete[] depthImgBuffer;
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -425,36 +424,36 @@ int main()
 
         // render rows*column number of spheres with varying metallic/roughness values scaled by rows and columns respectively
         glm::mat4 model = glm::mat4(1.0f);
-        //for (int row = 0; row < nrRows; ++row)
-        //{
-        //    pbrShader.setFloat("metallic", (float)row / (float)nrRows);
-        //    for (int col = 0; col < nrColumns; ++col)
-        //    {
-        //        // we clamp the roughness to 0.025 - 1.0 as perfectly smooth surfaces (roughness of 0.0) tend to look a bit off
-        //        // on direct lighting.
-        //        pbrShader.setFloat("roughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
+        for (int row = 0; row < nrRows; ++row)
+        {
+            pbrShader.setFloat("metallic", (float)row / (float)nrRows);
+            for (int col = 0; col < nrColumns; ++col)
+            {
+                // we clamp the roughness to 0.025 - 1.0 as perfectly smooth surfaces (roughness of 0.0) tend to look a bit off
+                // on direct lighting.
+                pbrShader.setFloat("roughness", glm::clamp((float)col / (float)nrColumns, 0.05f, 1.0f));
 
-        //        model = glm::mat4(1.0f);
-        //        model = glm::translate(model, glm::vec3(
-        //            (float)(col - (nrColumns / 2)) * spacing,
-        //            (float)(row - (nrRows / 2)) * spacing,
-        //            -2.0f
-        //        ));
-        //        pbrShader.setMat4("model", model);
-        //        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-        //        renderSphere();
-        //    }
-        //}
+                model = glm::mat4(1.0f);
+                model = glm::translate(model, glm::vec3(
+                    (float)(col - (nrColumns / 2)) * spacing,
+                    (float)(row - (nrRows / 2)) * spacing,
+                    -2.0f
+                ));
+                pbrShader.setMat4("model", model);
+                pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+                renderSphere();
+            }
+        }
 
-        //glActiveTexture(GL_TEXTURE3);
-        //glBindTexture(GL_TEXTURE_2D, diffuseMap);
-        //pbrShader.setInt("albedoMap", 3);
-        //model = glm::mat4(1.0f);
-        //pbrShader.setFloat("metallic", 0.3f);
-        //pbrShader.setFloat("roughness", 0.25f);
-        //pbrShader.setMat4("model", model);
-        //pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
-        //ourModel.Draw(pbrShader);
+        glActiveTexture(GL_TEXTURE3);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        pbrShader.setInt("albedoMap", 3);
+        model = glm::mat4(1.0f);
+        pbrShader.setFloat("metallic", 0.3f);
+        pbrShader.setFloat("roughness", 0.25f);
+        pbrShader.setMat4("model", model);
+        pbrShader.setMat3("normalMatrix", glm::transpose(glm::inverse(glm::mat3(model))));
+        ourModel.Draw(pbrShader);
 
 
         // render light source (simply re-render sphere at light positions)
@@ -484,13 +483,13 @@ int main()
         //glBindTexture(GL_TEXTURE_CUBE_MAP, prefilterMap); // display prefilter map
         renderCube();
 
-        equirectangularToCubemapShader.use();
-        equirectangularToCubemapShader.setInt("equirectangularMap", 0);
-        equirectangularToCubemapShader.setMat4("projection", projection);
-        equirectangularToCubemapShader.setMat4("view", view);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, hdrTexture);
-        renderCube();
+        //equirectangularToCubemapShader.use();
+        //equirectangularToCubemapShader.setInt("equirectangularMap", 0);
+        //equirectangularToCubemapShader.setMat4("projection", projection);
+        //equirectangularToCubemapShader.setMat4("view", view);
+        //glActiveTexture(GL_TEXTURE0);
+        //glBindTexture(GL_TEXTURE_2D, hdrTexture);
+        //renderCube();
 
 
         // render BRDF map to screen
@@ -697,7 +696,7 @@ void renderCube()
             // back face
             -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
              1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
-             1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right         
+             1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, // bottom-right
              1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, // top-right
             -1.0f, -1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, // bottom-left
             -1.0f,  1.0f, -1.0f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, // top-left
