@@ -8,10 +8,11 @@ uniform sampler2D texture1;
 void main()
 {
 	vec4 texColor = texture(texture1, TexCoords);
-    if(texColor.a < 0.1) {
-        //使用discard关键字丢弃一个片源
-        discard;
-    }
+    //启用了混合就不需要丢弃片段了
+    //if(texColor.a < 0.1) {
+    //    //使用discard关键字丢弃一个片源
+    //    discard;
+    //}
     FragColor = texColor;
           
     //FragColor = texture(texture1, TexCoords);
